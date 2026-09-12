@@ -3,9 +3,9 @@ import { dirname, resolve } from 'node:path'
 import dotenv from 'dotenv'
 import { createJiti } from 'jiti'
 import { z } from 'zod'
-import type { EggheadConfig } from '../types.js'
+import type { VegapunkConfig } from '../types.js'
 
-const CONFIG_NAMES = ['egghead.config.ts', 'egghead.config.js', 'egghead.config.mts']
+const CONFIG_NAMES = ['vegapunk.config.ts', 'vegapunk.config.js', 'vegapunk.config.mts']
 
 const aiSchema = z.object({
   provider: z.enum(['openai', 'anthropic', 'google', 'openai-compatible']),
@@ -16,7 +16,7 @@ const aiSchema = z.object({
 })
 
 export type LoadedConfig = {
-  config: EggheadConfig
+  config: VegapunkConfig
   configFile: string
   rootDir: string
 }
@@ -42,11 +42,11 @@ export function findConfigFile(cwd = process.cwd()): string | undefined {
 }
 
 export async function loadConfig(cwd = process.cwd()): Promise<LoadedConfig> {
-  const fromEnv = process.env.EGGHEAD_CONFIG
+  const fromEnv = process.env.VEGAPUNK_CONFIG
   const configFile = fromEnv && existsSync(fromEnv) ? fromEnv : findConfigFile(cwd)
   if (!configFile) {
     throw new Error(
-      'Could not find egghead.config.ts. Put it next to playwright.config.ts, or set EGGHEAD_CONFIG.',
+      'Could not find vegapunk.config.ts. Put it next to playwright.config.ts, or set VEGAPUNK_CONFIG.',
     )
   }
 
@@ -54,7 +54,7 @@ export async function loadConfig(cwd = process.cwd()): Promise<LoadedConfig> {
 
   const jiti = createJiti(import.meta.url)
   const mod = await jiti.import(configFile)
-  const raw = (mod as { default?: EggheadConfig }).default ?? (mod as EggheadConfig)
+  const raw = (mod as { default?: VegapunkConfig }).default ?? (mod as VegapunkConfig)
   const config = validateConfig(raw)
 
   return {
@@ -64,9 +64,9 @@ export async function loadConfig(cwd = process.cwd()): Promise<LoadedConfig> {
   }
 }
 
-export function validateConfig(raw: EggheadConfig): EggheadConfig {
+export function validateConfig(raw: VegapunkConfig): VegapunkConfig {
   if (!raw || typeof raw !== 'object') {
-    throw new Error('egghead.config.ts must default-export a config object.')
+    throw new Error('vegapunk.config.ts must default-export a config object.')
   }
   aiSchema.parse(raw.ai)
 

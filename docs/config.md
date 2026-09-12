@@ -1,12 +1,12 @@
 # Config
 
-Egghead and Playwright each have a config file.
+Vegapunk and Playwright each have a config file.
 
-- `egghead.config.ts` — model settings (`ai`)
+- `vegapunk.config.ts` — model settings (`ai`)
 - `playwright.config.ts` — `timeout`, `use`, `projects`, `reporter`, `testDir`, `outputDir`
 
 ```ts
-import { defineConfig } from '@egghead/test'
+import { defineConfig } from 'vegapunk'
 
 export default defineConfig({
   ai: {
@@ -32,27 +32,27 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { open: 'never' }],
-    ['@egghead/test/reporter', { open: 'never' }],
+    ['vegapunk/reporter', { open: 'never' }],
   ],
 })
 ```
 
 `ai.apiKey` is required. How you load the key is up to you.
 
-Register `@egghead/test/reporter` in `playwright.config.ts` so the Egghead index is rebuilt at the end of the run. `egghead.explore()` loads `egghead.config.ts` for the model. Run charters with `npx playwright test`.
+Register `vegapunk/reporter` in `playwright.config.ts` so the Vegapunk index is rebuilt at the end of the run. `vegapunk.explore()` loads `vegapunk.config.ts` for the model. Run charters with `npx playwright test`.
 
-Egghead writes into `test-results/egghead-report/` (Playwright’s `outputDir` plus that subfolder). Playwright’s HTML reporter stays at `playwright-report/` so the two `index.html` files never clash. Zip `test-results/` for traces and the Egghead report.
+Vegapunk writes into `test-results/vegapunk-report/` (Playwright’s `outputDir` plus that subfolder). Playwright’s HTML reporter stays at `playwright-report/` so the two `index.html` files never clash. Zip `test-results/` for traces and the Vegapunk report.
 
 ## Timebox vs timeout
 
-- Put **`timebox` on `egghead.explore()`**. That value is how long that agent call may run. At the deadline Egghead aborts the current model call and closes the session; it does not start a wrap-up turn.
+- Put **`timebox` on `vegapunk.explore()`**. That value is how long that agent call may run. At the deadline Vegapunk aborts the current model call and closes the session; it does not start a wrap-up turn.
 - **`timeout`** is Playwright’s test duration limit (setup + every explore + teardown). Set it in `playwright.config.ts`, `{ timeout }` on the test, or `test.setTimeout()`.
 
-Raise Playwright `timeout` when you have several `egghead.explore()` calls.
+Raise Playwright `timeout` when you have several `vegapunk.explore()` calls.
 
 ## `use` and projects
 
-Playwright values, in `playwright.config.ts`. `baseURL` is for relative `page.goto` in the test body. `egghead.explore()` stays on the current page.
+Playwright values, in `playwright.config.ts`. `baseURL` is for relative `page.goto` in the test body. `vegapunk.explore()` stays on the current page.
 
 A path that starts with `/` is origin-absolute. `baseURL: 'https://demo.playwright.dev/todomvc'` plus `page.goto('/')` opens `https://demo.playwright.dev/`, not TodoMVC. Put a trailing slash on a subdirectory `baseURL` and go to `./`:
 

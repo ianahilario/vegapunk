@@ -6,7 +6,7 @@ import type { AiConfig } from '../types.js'
 
 export function createModel(ai: AiConfig): LanguageModel {
   if (!ai.apiKey) {
-    throw new Error('ai.apiKey is required in egghead.config.ts.')
+    throw new Error('ai.apiKey is required in vegapunk.config.ts.')
   }
 
   if (ai.provider === 'anthropic') {

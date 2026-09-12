@@ -1,24 +1,24 @@
 # Charters
 
-A charter is an ordinary Playwright test. Import `test` from `@playwright/test` and `egghead` from `@egghead/test`.
+A charter is an ordinary Playwright test. Import `test` from `@playwright/test` and `vegapunk` from `vegapunk`.
 
-Anything before `egghead.explore()` is your setup. Anything after is teardown. Egghead only runs when you call it.
+Anything before `vegapunk.explore()` is your setup. Anything after is teardown. Vegapunk only runs when you call it.
 
 ```ts
 import { test } from '@playwright/test'
-import { egghead } from '@egghead/test'
+import { vegapunk } from 'vegapunk'
 import { Persona } from '../personas'
 
 test('a user can review settings then leave signed out', { tag: '@settings' }, async ({ page }) => {
   await page.goto('/settings')
-  await egghead.explore({
+  await vegapunk.explore({
     page,
     mission: 'Explore settings.',
     persona: Persona.DEFAULT,
     timebox: 15 * 60 * 1000,
   })
   await page.getByRole('button', { name: 'Log out' }).click()
-  await egghead.explore({
+  await vegapunk.explore({
     page,
     mission: 'Explore signed-out screens.',
     persona: Persona.ELDERLY,
@@ -27,7 +27,7 @@ test('a user can review settings then leave signed out', { tag: '@settings' }, a
 })
 ```
 
-## `egghead.explore(options)`
+## `vegapunk.explore(options)`
 
 Required:
 
@@ -42,7 +42,7 @@ Optional:
 - `visual` — `true` sends a viewport screenshot each turn so the agent can judge overlap, contrast, clip, and overflow. Off by default (token cost). Needs a vision-capable model.
 
 ```ts
-await egghead.explore({
+await vegapunk.explore({
   page,
   mission: 'Look for layout and contrast issues.',
   persona: Persona.DEFAULT,
@@ -52,14 +52,14 @@ await egghead.explore({
 })
 ```
 
-You may call `egghead.explore()` more than once. Each call has its own timebox. Issues from the first call do not skip later calls or teardown. The test fails **at the end** if any issue was logged.
+You may call `vegapunk.explore()` more than once. Each call has its own timebox. Issues from the first call do not skip later calls or teardown. The test fails **at the end** if any issue was logged.
 
 ## Timebox vs timeout
 
-- `egghead.explore({ timebox })` — Egghead’s exploration stop for **that call**. When the clock hits, the in-flight model call is aborted and the session closes immediately. There is no extra wrap-up turn.
+- `vegapunk.explore({ timebox })` — Vegapunk’s exploration stop for **that call**. When the clock hits, the in-flight model call is aborted and the session closes immediately. There is no extra wrap-up turn.
 - `timeout` — Playwright’s test duration limit (setup + every explore + teardown). Set it in `playwright.config.ts`, `{ timeout }` on the test, or `test.setTimeout()`.
 
-Raise Playwright `timeout` when you have several `egghead.explore()` calls so the 30-second default does not kill a long explore.
+Raise Playwright `timeout` when you have several `vegapunk.explore()` calls so the 30-second default does not kill a long explore.
 
 ## Tags
 

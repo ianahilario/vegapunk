@@ -19,7 +19,7 @@ function currentTestInfo(): TestInfo {
   try {
     return test.info()
   } catch {
-    throw new Error('egghead.explore() must run inside a Playwright test.')
+    throw new Error('vegapunk.explore() must run inside a Playwright test.')
   }
 }
 
@@ -35,12 +35,12 @@ function currentTestInfo(): TestInfo {
  * @example
  * ```ts
  * import { test } from '@playwright/test'
- * import { egghead } from '@egghead/test'
+ * import { vegapunk } from 'vegapunk'
  * import { Persona } from '../personas'
  *
  * test('a user can add, complete, and filter their items', { tag: '@todos' }, async ({ page }) => {
  *   await page.goto('./')
- *   await egghead.explore({
+ *   await vegapunk.explore({
  *     page,
  *     mission: 'Explore adding, completing, and filtering todos.',
  *     persona: Persona.DEFAULT,
@@ -52,7 +52,7 @@ function currentTestInfo(): TestInfo {
 export async function explore(options: ExploreOptions): Promise<void> {
   const page: Page | undefined = options.page
   if (!page) {
-    throw new Error('egghead.explore() requires page.')
+    throw new Error('vegapunk.explore() requires page.')
   }
 
   const testInfo = currentTestInfo()
@@ -62,7 +62,7 @@ export async function explore(options: ExploreOptions): Promise<void> {
   await runExplore(page, session, options)
 
   writeSessionReport(session, page.url())
-  await testInfo.attach('egghead-report', {
+  await testInfo.attach('vegapunk-report', {
     path: `${session.sessionDir}/report.html`,
     contentType: 'text/html',
   })
@@ -79,4 +79,4 @@ export async function explore(options: ExploreOptions): Promise<void> {
     .toBe(0)
 }
 
-export const egghead = { explore }
+export const vegapunk = { explore }

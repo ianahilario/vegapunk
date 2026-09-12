@@ -1,18 +1,18 @@
-import type { EggheadConfig } from '../types.js'
+import type { VegapunkConfig } from '../types.js'
 
 /**
- * Type-check and return an `egghead.config.ts` object.
+ * Type-check and return a `vegapunk.config.ts` object.
  *
- * Only Egghead keys: required `ai`. Playwright `timeout`, `use`,
+ * Only Vegapunk keys: required `ai`. Playwright `timeout`, `use`,
  * `projects`, `outputDir`, and reporters go in `playwright.config.ts`.
- * The agent stop is always `egghead.explore({ timebox })`.
+ * The agent stop is always `vegapunk.explore({ timebox })`.
  *
- * @param config - Egghead config. `ai` is required.
+ * @param config - Vegapunk config. `ai` is required.
  * @returns The same config object.
  *
  * @example
  * ```ts
- * import { defineConfig } from '@egghead/test'
+ * import { defineConfig } from 'vegapunk'
  *
  * export default defineConfig({
  *   ai: {
@@ -25,6 +25,6 @@ import type { EggheadConfig } from '../types.js'
  * })
  * ```
  */
-export function defineConfig(config: EggheadConfig): EggheadConfig {
+export function defineConfig(config: VegapunkConfig): VegapunkConfig {
   return config
 }

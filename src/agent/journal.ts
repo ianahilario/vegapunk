@@ -23,6 +23,6 @@ export function journal(
   )
   const prefix = kind === 'issue' ? '!' : kind === 'action' ? '>' : '·'
   const persona = session.explores[exploreIndex]?.persona.id
-  const tag = persona ? `[egghead - ${persona}]` : '[egghead]'
+  const tag = persona ? `[vegapunk - ${persona}]` : '[vegapunk]'
   console.log(`${tag} ${prefix} ${message}`)
 }

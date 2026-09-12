@@ -8,7 +8,7 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { open: 'never' }],
-    ['@egghead/test/reporter', { open: 'never' }],
+    ['vegapunk/reporter', { open: 'never' }],
   ],
   use: {
     baseURL: 'https://demo.playwright.dev/todomvc/',

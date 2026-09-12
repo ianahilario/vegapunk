@@ -1,4 +1,4 @@
-import { defineConfig } from '@egghead/test'
+import { defineConfig } from 'vegapunk'
 
 export default defineConfig({
   ai: {

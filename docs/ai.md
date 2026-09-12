@@ -1,8 +1,8 @@
 # AI providers
 
-`ai.apiKey` is your **provider** key. Egghead calls that provider directly.
+`ai.apiKey` is your **provider** key. Vegapunk calls that provider directly.
 
-Cursor is not an Egghead backend. Built-in Cursor subscription models cannot be used here. If you already pasted a provider key in Cursor Settings → Models, use that same key as `ai.apiKey`. You are not connecting Egghead to Cursor.
+Cursor is not a Vegapunk backend. Built-in Cursor subscription models cannot be used here. If you already pasted a provider key in Cursor Settings → Models, use that same key as `ai.apiKey`. You are not connecting Vegapunk to Cursor.
 
 ## OpenRouter (sample)
 
@@ -23,7 +23,7 @@ Set `ai.apiKey` to your OpenRouter key.
 
 The sample uses DeepSeek because Anthropic, OpenAI, and Gemini are unavailable in some regions (including Hong Kong). A slug that usually works there for text and vision: `qwen/qwen3.5-27b`.
 
-`egghead.explore({ visual: true })` sends a viewport JPEG each turn. The model must accept images. Only the latest screenshot stays in context. If your default model is text-only, override for that call:
+`vegapunk.explore({ visual: true })` sends a viewport JPEG each turn. The model must accept images. Only the latest screenshot stays in context. If your default model is text-only, override for that call:
 
 ```ts
 ai: { model: 'qwen/qwen3.5-27b' }

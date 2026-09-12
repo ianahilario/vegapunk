@@ -3,16 +3,16 @@
 ## Install
 
 ```bash
-npm i -D @egghead/test
+npm i -D vegapunk
 ```
 
-Copy [examples/todomvc](../examples/todomvc) or add `egghead.config.ts`, `playwright.config.ts`, `personas.ts`, and a charter yourself. Gitignore `test-results/` and `playwright-report/`.
+Copy [examples/todomvc](../examples/todomvc) or add `vegapunk.config.ts`, `playwright.config.ts`, `personas.ts`, and a charter yourself. Gitignore `test-results/` and `playwright-report/`.
 
-Register `@egghead/test/reporter` in `playwright.config.ts`.
+Register `vegapunk/reporter` in `playwright.config.ts`.
 
 ## API key
 
-Set `ai.apiKey` in `egghead.config.ts`. How you load the key is up to you.
+Set `ai.apiKey` in `vegapunk.config.ts`. How you load the key is up to you.
 
 The sample config talks to OpenRouter. See [ai.md](ai.md) for Anthropic, OpenAI, and other OpenAI-compatible providers.
 
@@ -24,7 +24,7 @@ The example charter uses Playwright TodoMVC (`https://demo.playwright.dev/todomv
 npx playwright test
 ```
 
-Open `test-results/egghead-report/index.html` after the run. Use Playwright UI with:
+Open `test-results/vegapunk-report/index.html` after the run. Use Playwright UI with:
 
 ```bash
 npx playwright test --ui

@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import type { TestInfo } from '@playwright/test'
-import { eggheadReportDir } from '../report/paths.js'
+import { vegapunkReportDir } from '../report/paths.js'
 import type { CheckOk, Issue, JournalEntry, Persona } from '../types.js'
 
 export type ExploreSection = {
@@ -28,7 +28,7 @@ export type SessionState = {
 
 export function createSession(testInfo: TestInfo): SessionState {
   const startedAt = new Date()
-  const reportRoot = eggheadReportDir(testInfo.project.outputDir)
+  const reportRoot = vegapunkReportDir(testInfo.project.outputDir)
   const sessionDir = join(reportRoot, basename(testInfo.outputDir))
   mkdirSync(join(sessionDir, 'screenshots'), { recursive: true })
   mkdirSync(join(sessionDir, 'videos'), { recursive: true })

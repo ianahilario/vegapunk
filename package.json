@@ -1,9 +1,20 @@
 {
-  "name": "@egghead/test",
+  "name": "vegapunk",
   "version": "0.1.0",
   "description": "AI-assisted exploratory testing on top of Playwright",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ianahilario/vegapunk.git"
+  },
+  "homepage": "https://github.com/ianahilario/vegapunk#readme",
+  "bugs": {
+    "url": "https://github.com/ianahilario/vegapunk/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20"
   },

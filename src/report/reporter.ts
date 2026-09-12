@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { FullConfig, FullResult, Reporter, Suite } from '@playwright/test/reporter'
 import { renderIndex, type IndexSession } from './html.js'
-import { eggheadReportDir } from './paths.js'
+import { vegapunkReportDir } from './paths.js'
 import type { SessionReport } from './types.js'
 import { writeSessionHtml } from './write.js'
 
@@ -10,7 +10,7 @@ type Options = {
   open?: 'never' | 'always'
 }
 
-export default class EggheadReporter implements Reporter {
+export default class VegapunkReporter implements Reporter {
   private outputDirs: string[] = []
 
   constructor(_options: Options = {}) {}
@@ -25,7 +25,7 @@ export default class EggheadReporter implements Reporter {
 
   async onEnd(_result: FullResult): Promise<void> {
     for (const dir of this.outputDirs) {
-      const reportDir = eggheadReportDir(dir)
+      const reportDir = vegapunkReportDir(dir)
       if (existsSync(reportDir)) writeIndex(reportDir)
     }
   }

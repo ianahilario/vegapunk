@@ -8,7 +8,7 @@ import type { Page } from '@playwright/test'
  *
  * @example
  * ```ts
- * import { createPersona } from '@egghead/test'
+ * import { createPersona } from 'vegapunk'
  *
  * export const Persona = {
  *   DEFAULT: createPersona({
@@ -20,7 +20,7 @@ import type { Page } from '@playwright/test'
  * ```
  */
 export type Persona = {
-  /** Stable slug used in logs (`[egghead - default]`) and the report. */
+  /** Stable slug used in logs (`[vegapunk - default]`) and the report. */
   id: string
   /** Short human label shown in the session report. */
   title: string
@@ -35,19 +35,19 @@ export type Persona = {
  * How long something may run, in milliseconds. Strings like `"20m"`, `"30s"`,
  * `"500ms"`, or `"1h"` also work.
  *
- * Used by `egghead.explore({ timebox })`.
+ * Used by `vegapunk.explore({ timebox })`.
  */
 export type Duration = number | `${number}m` | `${number}s` | `${number}ms` | `${number}h`
 
 /**
- * Arguments for one `egghead.explore()` call. `page`, `mission`, `persona`,
+ * Arguments for one `vegapunk.explore()` call. `page`, `mission`, `persona`,
  * and `timebox` are required. Call it as many times as you want in a test;
  * each call has its own timebox. The test fails after the body if any call
  * logged an issue.
  *
  * @example
  * ```ts
- * await egghead.explore({
+ * await vegapunk.explore({
  *   page,
  *   mission: 'Explore adding, completing, and filtering todos.',
  *   persona: Persona.DEFAULT,
@@ -57,7 +57,7 @@ export type Duration = number | `${number}m` | `${number}s` | `${number}ms` | `$
  *
  * @example Override the model for a visual pass
  * ```ts
- * await egghead.explore({
+ * await vegapunk.explore({
  *   page,
  *   mission: 'Look for overlap, clip, contrast, and overflow.',
  *   persona: Persona.DEFAULT,
@@ -73,7 +73,7 @@ export type ExploreOptions = {
    */
   page: Page
   /**
-   * What to look at on the **current** Playwright page. Egghead does not
+   * What to look at on the **current** Playwright page. Vegapunk does not
    * navigate for you — `page.goto()` first.
    *
    * @example
@@ -117,7 +117,7 @@ export type ExploreOptions = {
    */
   visual?: boolean
   /**
-   * Partial override of `ai` from `egghead.config.ts` for **this call only**.
+   * Partial override of `ai` from `vegapunk.config.ts` for **this call only**.
    * Unspecified keys keep the config values.
    *
    * @example
@@ -138,7 +138,7 @@ export type ExploreOptions = {
  * calls `done`, or it logs issues.
  *
  * Setup (`page.goto`, login) happens **before** this call. Issues from one
- * call do not skip later `egghead.explore()` calls or teardown. The test
+ * call do not skip later `vegapunk.explore()` calls or teardown. The test
  * fails at the end if any issue was logged.
  */
 export type ExploreFn = (options: ExploreOptions) => Promise<void>
@@ -203,7 +203,7 @@ export type CheckOk = {
 export type AiProvider = 'openai' | 'anthropic' | 'google' | 'openai-compatible'
 
 /**
- * Model settings for `explore()`. Required in `egghead.config.ts` as `ai`.
+ * Model settings for `explore()`. Required in `vegapunk.config.ts` as `ai`.
  * Pass a partial object to `explore({ ai })` to override keys for one call.
  *
  * @example Config
@@ -262,12 +262,12 @@ export type AiConfig = {
 }
 
 /**
- * `egghead.config.ts` — Egghead-only keys. Timeout, `use`, projects,
+ * `vegapunk.config.ts` — Vegapunk-only keys. Timeout, `use`, projects,
  * `outputDir`, and reporters live in `playwright.config.ts`.
  *
  * @example
  * ```ts
- * import { defineConfig } from '@egghead/test'
+ * import { defineConfig } from 'vegapunk'
  *
  * export default defineConfig({
  *   ai: {
@@ -279,10 +279,10 @@ export type AiConfig = {
  * })
  * ```
  */
-export type EggheadConfig = {
+export type VegapunkConfig = {
   /**
-   * Default model for every `egghead.explore()`. Override per call with
-   * `egghead.explore({ ai })`.
+   * Default model for every `vegapunk.explore()`. Override per call with
+   * `vegapunk.explore({ ai })`.
    */
   ai: AiConfig
 }
@@ -300,7 +300,7 @@ export type EggheadConfig = {
  * })
  * ```
  */
-export type EggheadTestDetails = {
+export type VegapunkTestDetails = {
   /** One tag or a list, e.g. `'@todos'` or `['@todos', '@filters']`. */
   tag?: string | string[]
   annotation?: { type: string; description?: string } | { type: string; description?: string }[]

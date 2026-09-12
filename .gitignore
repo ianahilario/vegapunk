@@ -2,9 +2,10 @@ node_modules/
 dist/
 test-results/
 playwright-report/
-egghead-results/
+vegapunk-results/
 .env
 .env.secret
 *.tsbuildinfo
 .DS_Store
 .tmp-init/
+*.tgz

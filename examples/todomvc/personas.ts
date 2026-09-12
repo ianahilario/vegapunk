@@ -1,4 +1,4 @@
-import { createPersona } from '@egghead/test'
+import { createPersona } from 'vegapunk'
 
 export const Persona = {
   DEFAULT: createPersona({

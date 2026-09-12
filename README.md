@@ -1,28 +1,28 @@
 <p align="center">
-  <img src="docs/egghead-icon.png" alt="Egghead" width="220" style="display: block; margin: 0 auto;">
+  <img src="docs/vegapunk-icon.png" alt="Vegapunk" width="220" style="display: block; margin: 0 auto;">
 </p>
 
-<h1 align="center">Egghead</h1>
+<h1 align="center">Vegapunk</h1>
 
-AI-assisted exploratory testing on top of Playwright. The package is **`@egghead/test`**.
+AI-assisted exploratory testing on top of Playwright. The package is **`vegapunk`**.
 
-Charters are ordinary Playwright tests. You write setup and teardown, then call `egghead.explore()` when you want an agent to wander the current page as a persona. Egghead reports what it did and any issues.
+Charters are ordinary Playwright tests. You write setup and teardown, then call `vegapunk.explore()` when you want an agent to wander the current page as a persona. Vegapunk reports what it did and any issues.
 
 ```bash
-npm i -D @egghead/test
+npm i -D vegapunk
 ```
 
 Add two configs next to each other:
 
-- `egghead.config.ts` — model settings (`ai`)
-- `playwright.config.ts` — `timeout`, `use`, `projects`, `outputDir`, and `@egghead/test/reporter`
+- `vegapunk.config.ts` — model settings (`ai`)
+- `playwright.config.ts` — `timeout`, `use`, `projects`, `outputDir`, and `vegapunk/reporter`
 
-Copy [examples/todomvc](examples/todomvc) if you want a working lab. Run charters with Playwright. `egghead.explore()` loads `egghead.config.ts` for the model.
+Copy [examples/todomvc](examples/todomvc) if you want a working lab. Run charters with Playwright. `vegapunk.explore()` loads `vegapunk.config.ts` for the model.
 
 `ai.apiKey` is required. How you load the key is up to you.
 
 ```ts
-import { defineConfig } from '@egghead/test'
+import { defineConfig } from 'vegapunk'
 
 export default defineConfig({
   ai: {
@@ -34,12 +34,12 @@ export default defineConfig({
 })
 ```
 
-`timebox` on `egghead.explore()` is how long that agent call may run (milliseconds). `timeout` is Playwright’s limit for the whole test — set it in `playwright.config.ts`.
+`timebox` on `vegapunk.explore()` is how long that agent call may run (milliseconds). `timeout` is Playwright’s limit for the whole test — set it in `playwright.config.ts`.
 
-A persona is who is exploring and how they use the product. `egghead.explore({ persona })` takes a `Persona` from `createPersona()`, not a string.
+A persona is who is exploring and how they use the product. `vegapunk.explore({ persona })` takes a `Persona` from `createPersona()`, not a string.
 
 ```ts
-import { createPersona } from '@egghead/test'
+import { createPersona } from 'vegapunk'
 
 export const Persona = {
   DEFAULT: createPersona({
@@ -53,12 +53,12 @@ export const Persona = {
 
 ```ts
 import { test } from '@playwright/test'
-import { egghead } from '@egghead/test'
+import { vegapunk } from 'vegapunk'
 import { Persona } from '../personas'
 
 test('a user can add, complete, and filter their items', { tag: '@todos' }, async ({ page }) => {
   await page.goto('./')
-  await egghead.explore({
+  await vegapunk.explore({
     page,
     mission: 'Explore adding, completing, and filtering todos.',
     persona: Persona.DEFAULT,
@@ -72,12 +72,12 @@ npx playwright test
 npx playwright test --ui
 ```
 
-The Egghead HTML report lands in Playwright’s `outputDir` under `egghead-report/` (default `test-results/egghead-report/index.html`). Playwright’s own HTML reporter stays at `playwright-report/`.
+The Vegapunk HTML report lands in Playwright’s `outputDir` under `vegapunk-report/` (default `test-results/vegapunk-report/index.html`). Playwright’s own HTML reporter stays at `playwright-report/`.
 
-Pass `visual: true` on `egghead.explore()` when you want a viewport screenshot each turn. It is off by default because it costs tokens and needs a vision-capable model. Override config `ai` for that call when the default model cannot see images:
+Pass `visual: true` on `vegapunk.explore()` when you want a viewport screenshot each turn. It is off by default because it costs tokens and needs a vision-capable model. Override config `ai` for that call when the default model cannot see images:
 
 ```ts
-await egghead.explore({
+await vegapunk.explore({
   page,
   mission: 'Look for layout and contrast issues.',
   persona: Persona.DEFAULT,
@@ -87,8 +87,8 @@ await egghead.explore({
 })
 ```
 
-If `egghead.explore()` logs any issue, the Playwright test fails at the end. The Egghead HTML report is the handoff (expected / actual, user-level repro steps).
+If `vegapunk.explore()` logs any issue, the Playwright test fails at the end. The Vegapunk HTML report is the handoff (expected / actual, user-level repro steps).
 
-Egghead calls your model provider directly. Anthropic, OpenAI, Google, and OpenAI-compatible endpoints (including OpenRouter) work. It does not call Cursor.
+Vegapunk calls your model provider directly. Anthropic, OpenAI, Google, and OpenAI-compatible endpoints (including OpenRouter) work. It does not call Cursor.
 
 See [docs/](docs/) for charters, personas, config, AI setup, and reports.

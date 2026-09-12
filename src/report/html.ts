@@ -143,7 +143,7 @@ function page(options: {
 </head>
 <body>
 <header>
-  <h1>Egghead report ${badge}</h1>
+  <h1>Vegapunk report ${badge}</h1>
   <nav class="crumbs">${crumbs}</nav>
 </header>
 <main>
@@ -168,7 +168,7 @@ export function renderIndex(sessions: IndexSession[]): string {
     )
     .join('')
   return page({
-    title: 'Egghead report',
+    title: 'Vegapunk report',
     crumbs: [{ href: './index.html', label: 'All tests' }],
     body: `
       <p class="meta">${sessions.length} test${sessions.length === 1 ? '' : 's'} · ${failed} with issues</p>
@@ -231,7 +231,7 @@ export function renderSession(report: SessionReport): string {
         ${report.url ? `<span><a href="${escape(report.url)}">${escape(report.url)}</a></span>` : ''}
       </p>
       <section class="card">
-        <h2>Egghead report</h2>
+        <h2>Vegapunk report</h2>
         <p class="meta">
           <span>critical ${counts.critical}</span>
           <span>high ${counts.high}</span>

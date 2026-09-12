@@ -1,5 +1,5 @@
 {
-  "name": "egghead-todomvc-example",
+  "name": "vegapunk-todomvc-example",
   "private": true,
   "type": "module",
   "scripts": {
@@ -7,7 +7,7 @@
     "ui": "playwright test --ui"
   },
   "devDependencies": {
-    "@egghead/test": "file:../..",
+    "vegapunk": "file:../..",
     "@playwright/test": "^1.55.0"
   }
 }

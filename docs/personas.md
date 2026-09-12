@@ -5,7 +5,7 @@ A persona is who is exploring and how they use the product — not a writing voi
 Group them on one object so charters can write `Persona.DEFAULT`:
 
 ```ts
-import { createPersona } from '@egghead/test'
+import { createPersona } from 'vegapunk'
 
 export const Persona = {
   DEFAULT: createPersona({
@@ -36,7 +36,7 @@ Required fields on each entry: `id`, `title`, `profile`.
 ```ts
 import { Persona } from '../personas'
 
-await egghead.explore({
+await vegapunk.explore({
   page,
   mission: 'Explore adding, completing, and filtering todos.',
   persona: Persona.DEFAULT,
@@ -44,6 +44,6 @@ await egghead.explore({
 })
 ```
 
-Convention: one `personas.ts` that charters import from. Egghead does not load personas by id and there is no `--persona` flag.
+Convention: one `personas.ts` that charters import from. Vegapunk does not load personas by id and there is no `--persona` flag.
 
 Starter keys in the sample lab: `Persona.DEFAULT` (everyday intended-path user), `Persona.MALICIOUS` (abusive inputs and URL tampering), `Persona.ELDERLY` (first-timer who misses small targets and subtle errors).

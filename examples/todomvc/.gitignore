@@ -1,5 +1,5 @@
 .env.secret
 test-results/
 playwright-report/
-egghead-results/
+vegapunk-results/
 node_modules/
