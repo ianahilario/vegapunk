@@ -5,11 +5,12 @@ export default defineConfig({
     index: 'src/index.ts',
     'report/reporter': 'src/report/reporter.ts',
   },
-  format: ['esm'],
+  format: ['esm', 'cjs'],
   dts: true,
   sourcemap: true,
   clean: true,
   splitting: false,
+  cjsInterop: true,
   target: 'node20',
   shims: true,
 })

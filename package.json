@@ -18,17 +18,30 @@
   "engines": {
     "node": ">=20"
   },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.cts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
       "default": "./dist/index.js"
     },
     "./reporter": {
-      "types": "./dist/report/reporter.d.ts",
-      "import": "./dist/report/reporter.js",
-      "require": "./dist/report/reporter.js",
+      "require": {
+        "types": "./dist/report/reporter.d.cts",
+        "default": "./dist/report/reporter.cjs"
+      },
+      "import": {
+        "types": "./dist/report/reporter.d.ts",
+        "default": "./dist/report/reporter.js"
+      },
       "default": "./dist/report/reporter.js"
     }
   },
