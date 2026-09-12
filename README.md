@@ -4,6 +4,15 @@
 
 <h1 align="center">Vegapunk</h1>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/vegapunk">
+    <img alt="npm downloads" src="https://img.shields.io/npm/d18m/vegapunk.svg">
+  </a>
+  <a href="https://www.npmjs.com/package/vegapunk">
+    <img alt="npm downloads weekly" src="https://img.shields.io/npm/dw/vegapunk.svg">
+  </a>
+</p>
+
 AI-assisted exploratory testing on top of Playwright. The package is **`vegapunk`**.
 
 Charters are ordinary Playwright tests. You write setup and teardown, then call `vegapunk.explore()` when you want an agent to wander the current page as a persona. Vegapunk reports what it did and any issues.
