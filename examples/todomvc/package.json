@@ -1,0 +1,13 @@
+{
+  "name": "egghead-todomvc-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@egghead/test": "file:../..",
+    "@playwright/test": "^1.55.0"
+  }
+}

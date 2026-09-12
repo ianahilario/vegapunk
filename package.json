@@ -1,0 +1,57 @@
+{
+  "name": "@egghead/test",
+  "version": "0.1.0",
+  "description": "AI-assisted exploratory testing on top of Playwright",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./reporter": {
+      "types": "./dist/report/reporter.d.ts",
+      "import": "./dist/report/reporter.js",
+      "require": "./dist/report/reporter.js",
+      "default": "./dist/report/reporter.js"
+    }
+  },
+  "workspaces": [
+    "examples/todomvc"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.49.0"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^1.2.12",
+    "@ai-sdk/google": "^1.2.22",
+    "@ai-sdk/openai": "^1.3.22",
+    "ai": "^4.3.16",
+    "dotenv": "^16.5.0",
+    "jiti": "^2.4.2",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.15.3",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
+  }
+}

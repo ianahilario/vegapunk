@@ -1,0 +1,5 @@
+.env.secret
+test-results/
+playwright-report/
+egghead-results/
+node_modules/
