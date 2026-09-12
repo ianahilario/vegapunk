@@ -45,6 +45,8 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
+    "test": "jiti src/duration.test.ts",
+    "test:example": "npm --prefix examples/todomvc run ui",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
