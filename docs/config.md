@@ -2,13 +2,14 @@
 
 Vegapunk and Playwright each have a config file.
 
-- `vegapunk.config.ts` — model settings (`ai`)
+- `vegapunk.config.ts` — model settings (`ai`) and default `timebox`
 - `playwright.config.ts` — `timeout`, `use`, `projects`, `reporter`, `testDir`, `outputDir`
 
 ```ts
 import { defineConfig } from 'vegapunk'
 
 export default defineConfig({
+  timebox: 10 * 60 * 1000,
   ai: {
     provider: 'openai-compatible',
     model: 'deepseek/deepseek-v4-flash',
@@ -39,13 +40,13 @@ export default defineConfig({
 
 `ai.apiKey` is required. How you load the key is up to you.
 
-Register `vegapunk/reporter` in `playwright.config.ts` so the Vegapunk index is rebuilt at the end of the run. `vegapunk.explore()` loads `vegapunk.config.ts` for the model. Run charters with `npx playwright test`.
+Register `vegapunk/reporter` in `playwright.config.ts` so the Vegapunk index is rebuilt at the end of the run. `vegapunk.explore()` loads `vegapunk.config.ts` for the model and default timebox. Run charters with `npx playwright test`.
 
 Vegapunk writes into `test-results/vegapunk-report/` (Playwright’s `outputDir` plus that subfolder). Playwright’s HTML reporter stays at `playwright-report/` so the two `index.html` files never clash. Zip `test-results/` for traces and the Vegapunk report.
 
 ## Timebox vs timeout
 
-- Put **`timebox` on `vegapunk.explore()`**. That value is how long that agent call may run. At the deadline Vegapunk aborts the current model call and closes the session; it does not start a wrap-up turn.
+- Put **`timebox` in `vegapunk.config.ts`**. That value is how long each agent call may run. Pass `timebox` on `vegapunk.explore()` only to override that call. At the deadline Vegapunk aborts the current model call and closes the session; it does not start a wrap-up turn.
 - **`timeout`** is Playwright’s test duration limit (setup + every explore + teardown). Set it in `playwright.config.ts`, `{ timeout }` on the test, or `test.setTimeout()`.
 
 Raise Playwright `timeout` when you have several `vegapunk.explore()` calls.

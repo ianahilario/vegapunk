@@ -32,17 +32,17 @@ export type Persona = {
 }
 
 /**
- * How long something may run, in milliseconds. Strings like `"20m"`, `"30s"`,
- * `"500ms"`, or `"1h"` also work.
+ * How long something may run, in milliseconds.
  *
- * Used by `vegapunk.explore({ timebox })`.
+ * Used by `parseDuration` for `timebox` values.
  */
-export type Duration = number | `${number}m` | `${number}s` | `${number}ms` | `${number}h`
+export type Duration = number
 
 /**
- * Arguments for one `vegapunk.explore()` call. `page`, `mission`, `persona`,
- * and `timebox` are required. Call it as many times as you want in a test;
- * each call has its own timebox. The test fails after the body if any call
+ * Arguments for one `vegapunk.explore()` call. `page`, `mission`, and
+ * `persona` are required. `timebox` is optional and overrides the config
+ * value for this call. Call it as many times as you want in a test; each
+ * call has its own timebox. The test fails after the body if any call
  * logged an issue.
  *
  * @example
@@ -51,7 +51,6 @@ export type Duration = number | `${number}m` | `${number}s` | `${number}ms` | `$
  *   page,
  *   mission: 'Explore adding, completing, and filtering todos.',
  *   persona: Persona.DEFAULT,
- *   timebox: 2 * 60 * 1000,
  * })
  * ```
  *
@@ -61,7 +60,6 @@ export type Duration = number | `${number}m` | `${number}s` | `${number}ms` | `$
  *   page,
  *   mission: 'Look for overlap, clip, contrast, and overflow.',
  *   persona: Persona.DEFAULT,
- *   timebox: 120_000,
  *   visual: true,
  *   ai: { model: 'qwen/qwen3.5-27b' },
  * })
@@ -92,18 +90,19 @@ export type ExploreOptions = {
    */
   persona: Persona
   /**
-   * Milliseconds **this** agent call may run. When the clock hits, the
-   * in-flight model call is aborted and the session closes — no wrap-up turn.
+   * How long **this** agent call may run, in milliseconds. Overrides `timebox`
+   * from `vegapunk.config.ts`. When the clock hits, the in-flight model call is
+   * aborted and the session closes — no wrap-up turn.
    *
    * This is not Playwright’s test `timeout`. `timeout` covers setup + every
    * `explore()` + teardown.
    *
    * @example
    * ```ts
-   * timebox: 10 * 60 * 1000
+   * timebox: 120_000
    * ```
    */
-  timebox: Duration
+  timebox?: number
   /**
    * Send a viewport JPEG each turn so the model can judge overlap, clip,
    * contrast, and overflow. Off by default (token cost). Needs a vision-capable
@@ -134,7 +133,8 @@ export type ExploreOptions = {
 }
 
 /**
- * Drive a Playwright page with an AI agent until the timebox, the model
+ * Drive a Playwright page with an AI agent until the timebox (config, or
+ * `explore({ timebox })`), the model calls `done`, or it logs issues.
  * calls `done`, or it logs issues.
  *
  * Setup (`page.goto`, login) happens **before** this call. Issues from one
@@ -270,6 +270,7 @@ export type AiConfig = {
  * import { defineConfig } from 'vegapunk'
  *
  * export default defineConfig({
+ *   timebox: 120_000,
  *   ai: {
  *     provider: 'openai-compatible',
  *     model: 'deepseek/deepseek-v4-flash',
@@ -280,6 +281,16 @@ export type AiConfig = {
  * ```
  */
 export type VegapunkConfig = {
+  /**
+   * How long each `vegapunk.explore()` may run by default, in milliseconds.
+   * Override per call with `vegapunk.explore({ timebox })`.
+   *
+   * @example
+   * ```ts
+   * timebox: 120_000
+   * ```
+   */
+  timebox: number
   /**
    * Default model for every `vegapunk.explore()`. Override per call with
    * `vegapunk.explore({ ai })`.

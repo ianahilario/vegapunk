@@ -37,11 +37,10 @@ export async function runExplore(
   if (!options.persona?.id || !options.persona.profile) {
     throw new Error('explore() requires a Persona object from createPersona().')
   }
-  if (options.timebox === undefined) {
-    throw new Error('explore() requires timebox (milliseconds, or a string like "20m").')
-  }
 
-  const callBudget = parseDuration(options.timebox)
+  const loaded = await loadConfig(process.cwd())
+  const timebox = options.timebox ?? loaded.config.timebox
+  const callBudget = parseDuration(timebox)
   const callDeadline = Date.now() + callBudget
   session.callDeadline = callDeadline
 
@@ -69,7 +68,6 @@ export async function runExplore(
     `Explore #${exploreIndex + 1}: ${options.mission} as ${options.persona.title}${visual ? ' (visual)' : ''}`,
   )
 
-  const loaded = await loadConfig(process.cwd())
   const ai = { ...loaded.config.ai, ...options.ai }
   const temperature = ai.temperature ?? 0.6
   const model = createModel(ai)

@@ -40,7 +40,6 @@ await vegapunk.explore({
   page,
   mission: 'Explore adding, completing, and filtering todos.',
   persona: Persona.DEFAULT,
-  timebox: '10m',
 })
 ```
 

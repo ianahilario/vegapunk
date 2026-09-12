@@ -1,6 +1,7 @@
 import { defineConfig } from 'vegapunk'
 
 export default defineConfig({
+  timebox: 120_000,
   ai: {
     provider: 'openai-compatible',
     model: 'deepseek/deepseek-v4-flash',

@@ -3,6 +3,7 @@ import { dirname, resolve } from 'node:path'
 import dotenv from 'dotenv'
 import { createJiti } from 'jiti'
 import { z } from 'zod'
+import { parseDuration } from '../duration.js'
 import type { VegapunkConfig } from '../types.js'
 
 const CONFIG_NAMES = ['vegapunk.config.ts', 'vegapunk.config.js', 'vegapunk.config.mts']
@@ -69,6 +70,12 @@ export function validateConfig(raw: VegapunkConfig): VegapunkConfig {
     throw new Error('vegapunk.config.ts must default-export a config object.')
   }
   aiSchema.parse(raw.ai)
+  if (raw.timebox === undefined) {
+    throw new Error(
+      'vegapunk.config.ts requires timebox in milliseconds (e.g. 120_000). Override per call with explore({ timebox }).',
+    )
+  }
+  parseDuration(raw.timebox)
 
   return raw
 }

@@ -27,7 +27,8 @@ function currentTestInfo(): TestInfo {
  * Drive a Playwright `page` with an AI agent.
  *
  * Import `test` from `@playwright/test` and call this from the test body.
- * Required: `page`, `mission`, `persona`, `timebox`.
+ * Required: `page`, `mission`, `persona`. `timebox` overrides the value in
+ * `vegapunk.config.ts` when you pass it.
  *
  * Call more than once if you want. Issues from one call do not skip later
  * calls. The test fails at the end if any issue was logged.
@@ -44,7 +45,6 @@ function currentTestInfo(): TestInfo {
  *     page,
  *     mission: 'Explore adding, completing, and filtering todos.',
  *     persona: Persona.DEFAULT,
- *     timebox: 10 * 60 * 1000,
  *   })
  * })
  * ```

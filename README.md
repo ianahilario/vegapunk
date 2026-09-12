@@ -14,10 +14,10 @@ npm i -D vegapunk
 
 Add two configs next to each other:
 
-- `vegapunk.config.ts` — model settings (`ai`)
+- `vegapunk.config.ts` — model settings (`ai`) and default `timebox`
 - `playwright.config.ts` — `timeout`, `use`, `projects`, `outputDir`, and `vegapunk/reporter`
 
-Copy [examples/todomvc](examples/todomvc) if you want a working lab. Run charters with Playwright. `vegapunk.explore()` loads `vegapunk.config.ts` for the model.
+Copy [examples/todomvc](examples/todomvc) if you want a working lab. Run charters with Playwright. `vegapunk.explore()` loads `vegapunk.config.ts` for the model and default timebox.
 
 `ai.apiKey` is required. How you load the key is up to you.
 
@@ -25,6 +25,7 @@ Copy [examples/todomvc](examples/todomvc) if you want a working lab. Run charter
 import { defineConfig } from 'vegapunk'
 
 export default defineConfig({
+  timebox: 10 * 60 * 1000,
   ai: {
     provider: 'openai-compatible',
     model: 'deepseek/deepseek-v4-flash',
@@ -34,7 +35,7 @@ export default defineConfig({
 })
 ```
 
-`timebox` on `vegapunk.explore()` is how long that agent call may run (milliseconds). `timeout` is Playwright’s limit for the whole test — set it in `playwright.config.ts`.
+`timebox` in `vegapunk.config.ts` is how long each agent call may run. Pass `timebox` on `vegapunk.explore()` only when that call should differ. `timeout` is Playwright’s limit for the whole test — set it in `playwright.config.ts`.
 
 A persona is who is exploring and how they use the product. `vegapunk.explore({ persona })` takes a `Persona` from `createPersona()`, not a string.
 
@@ -62,7 +63,6 @@ test('a user can add, complete, and filter their items', { tag: '@todos' }, asyn
     page,
     mission: 'Explore adding, completing, and filtering todos.',
     persona: Persona.DEFAULT,
-    timebox: 10 * 60 * 1000,
   })
 })
 ```
@@ -81,7 +81,6 @@ await vegapunk.explore({
   page,
   mission: 'Look for layout and contrast issues.',
   persona: Persona.DEFAULT,
-  timebox: 10 * 60 * 1000,
   visual: true,
   ai: { model: 'qwen/qwen3.5-27b' },
 })
