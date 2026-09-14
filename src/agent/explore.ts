@@ -1,4 +1,4 @@
-import { generateText, type CoreMessage } from 'ai'
+import { generateText, InvalidToolArgumentsError, type CoreMessage } from 'ai'
 import type { Page } from '@playwright/test'
 import { parseDuration } from '../duration.js'
 import type { ExploreOptions } from '../types.js'
@@ -24,6 +24,34 @@ function isTimeboxStop(error: unknown): boolean {
   if (name === 'AbortError' || name === 'TimeoutError') return true
   const message = error instanceof Error ? error.message : String(error)
   return /TIMEBOX|aborted|AbortError/i.test(message)
+}
+
+function invalidToolArgumentsError(error: unknown): InvalidToolArgumentsError | undefined {
+  if (InvalidToolArgumentsError.isInstance(error)) return error
+  if (error instanceof Error && InvalidToolArgumentsError.isInstance(error.cause)) {
+    return error.cause
+  }
+  return undefined
+}
+
+function isInvalidToolArguments(error: unknown): boolean {
+  if (invalidToolArgumentsError(error)) return true
+  const message = error instanceof Error ? error.message : String(error)
+  return message.includes('Invalid arguments for tool')
+}
+
+function toolFailureHint(error: unknown, message: string): string {
+  if (isInvalidToolArguments(error)) {
+    const toolName = invalidToolArgumentsError(error)?.toolName ?? 'tool'
+    return (
+      `The ${toolName} call was rejected (invalid arguments): ${message.split('\n')[0]}. ` +
+      'Retry that tool with every required field. Do not omit title or other required strings.'
+    )
+  }
+  return (
+    `A tool failed: ${message.split('\n')[0]}. Continue from the next snapshot. ` +
+    'Use the accessible name from the snapshot, not the visible label beside it.'
+  )
 }
 
 export async function runExplore(
@@ -194,12 +222,15 @@ export async function runExplore(
             `explore({ visual: true }) needs a vision-capable model. ${ai.model} rejected the screenshot. ${message.split('\n')[0]}`,
           )
         }
-        if (message.includes('Error executing tool') || message.includes('ToolExecution')) {
+        if (
+          isInvalidToolArguments(error) ||
+          message.includes('Error executing tool') ||
+          message.includes('ToolExecution')
+        ) {
           journal(session, exploreIndex, 'thought', `Tool failed: ${message.slice(0, 240)}`)
           messages.push({
             role: 'user',
-            content:
-              `A tool failed: ${message.split('\n')[0]}. Continue from the next snapshot. Use the accessible name from the snapshot, not the visible label beside it.`,
+            content: toolFailureHint(error, message),
           })
           continue
         }
@@ -213,7 +244,7 @@ export async function runExplore(
   } finally {
     clearTimeout(abortTimer)
     const section = session.explores[exploreIndex]
-    if (section && !section.endedAt) section.endedAt = new Date().toISOString()
+    if (section) section.endedAt = new Date().toISOString()
   }
 }
 
