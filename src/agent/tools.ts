@@ -81,6 +81,7 @@ export function createTools(
     lastActions: number[]
     mutatedThisStep: boolean
     issuesOnUnchangedView: number
+    stop: () => void
   },
   options: { visual?: boolean } = {},
 ) {
@@ -312,6 +313,7 @@ export function createTools(
       execute: async ({ summary }) => {
         control.done = true
         journal(session, exploreIndex, 'wrap', summary)
+        control.stop()
         return { ok: true }
       },
     }),

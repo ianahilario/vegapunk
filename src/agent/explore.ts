@@ -114,18 +114,22 @@ export async function runExplore(
     }
   }
 
-  const toolControl = {
-    done: false,
-    lastActions: [] as number[],
-    mutatedThisStep: false,
-    issuesOnUnchangedView: 0,
-  }
-  const boundTools = createTools(page, session, exploreIndex, toolControl, { visual })
   const abort = new AbortController()
   const abortTimer = setTimeout(
     () => abort.abort(),
     Math.max(0, callDeadline - Date.now()),
   )
+  const toolControl = {
+    done: false,
+    lastActions: [] as number[],
+    mutatedThisStep: false,
+    issuesOnUnchangedView: 0,
+    stop: () => {
+      clearTimeout(abortTimer)
+      abort.abort()
+    },
+  }
+  const boundTools = createTools(page, session, exploreIndex, toolControl, { visual })
 
   const closeExplore = (reason: string) => {
     if (!toolControl.done) {
@@ -211,7 +215,9 @@ export async function runExplore(
         } else if (result.text) {
           messages.push({ role: 'assistant', content: result.text })
         }
+        if (toolControl.done) break
       } catch (error) {
+        if (toolControl.done) break
         if (isTimeboxStop(error)) {
           closeExplore('Timebox reached.')
           break
