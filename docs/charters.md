@@ -56,6 +56,8 @@ The agent can call `overrideRequest` to abort, mock, or tamper with same-origin 
 
 `scanA11y` runs axe (WCAG 2.2 AA tags) on the current page. Findings show up on the next snapshot as A11y scan lines the agent can quote. `tab` moves focus and returns the focused role and name — use that for keyboard order, not `press` with Tab.
 
+Other agent tools: `pageFetch` (same-origin, cookie-authenticated IDOR/hidden APIs), `readStorage` / `writeStorage`, `hover`, `setInputFiles`, `handleDialog` (register before the click), `emulateMedia`, and `setNetwork` (`offline` / `slow3g` / `fast3g` / `online`). Fetch, Storage, and Conditions lines are quoted like Network. `setNetwork` throttle needs Chromium. Routes, dialogs, media, and network profile are reset when that `explore()` ends.
+
 ## Timebox vs timeout
 
 - Config **`timebox`** — Vegapunk’s default exploration stop. `vegapunk.explore({ timebox })` overrides it for that call. When the clock hits, the in-flight model call is aborted and the session closes immediately. There is no extra wrap-up turn.

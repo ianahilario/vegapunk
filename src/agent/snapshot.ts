@@ -37,8 +37,20 @@ export async function captureSnapshot(page: Page): Promise<string> {
   const keyboardBlock = keyboard.length
     ? `\nKeyboard:\n${keyboard.join('\n')}`
     : ''
+  const fetchLines = consumeFetch(page)
+  const fetchBlock = fetchLines.length
+    ? `\nFetch:\n${fetchLines.join('\n')}`
+    : ''
+  const storage = consumeStorage(page)
+  const storageBlock = storage.length
+    ? `\nStorage:\n${storage.join('\n')}`
+    : ''
+  const conditions = consumeConditions(page)
+  const conditionsBlock = conditions.length
+    ? `\nConditions:\n${conditions.join('\n')}`
+    : ''
 
-  return `URL: ${url}\nTitle: ${title}\n\n${tree}${consoleBlock}${networkBlock}${a11yBlock}${keyboardBlock}`
+  return `URL: ${url}\nTitle: ${title}\n\n${tree}${consoleBlock}${networkBlock}${a11yBlock}${keyboardBlock}${fetchBlock}${storageBlock}${conditionsBlock}`
 }
 
 const consoleBuffer = new WeakMap<Page, string[]>()
@@ -160,6 +172,57 @@ function consumeKeyboard(page: Page): string[] {
   const lines = keyboardBuffer.get(page)
   if (!lines?.length) return []
   keyboardBuffer.set(page, [])
+  return lines
+}
+
+const fetchBuffer = new WeakMap<Page, string[]>()
+const FETCH_SNAPSHOT_MAX = 10
+
+export function recordFetch(page: Page, line: string): void {
+  const lines = fetchBuffer.get(page) ?? []
+  lines.push(line)
+  if (lines.length > FETCH_SNAPSHOT_MAX) {
+    lines.splice(0, lines.length - FETCH_SNAPSHOT_MAX)
+  }
+  fetchBuffer.set(page, lines)
+}
+
+function consumeFetch(page: Page): string[] {
+  const lines = fetchBuffer.get(page)
+  if (!lines?.length) return []
+  fetchBuffer.set(page, [])
+  return lines
+}
+
+const storageBuffer = new WeakMap<Page, string[]>()
+
+export function recordStorage(page: Page, lines: string[]): void {
+  storageBuffer.set(page, [...lines])
+}
+
+function consumeStorage(page: Page): string[] {
+  const lines = storageBuffer.get(page)
+  if (!lines?.length) return []
+  storageBuffer.set(page, [])
+  return lines
+}
+
+const conditionsBuffer = new WeakMap<Page, string[]>()
+const CONDITIONS_SNAPSHOT_MAX = 10
+
+export function recordCondition(page: Page, line: string): void {
+  const lines = conditionsBuffer.get(page) ?? []
+  lines.push(line)
+  if (lines.length > CONDITIONS_SNAPSHOT_MAX) {
+    lines.splice(0, lines.length - CONDITIONS_SNAPSHOT_MAX)
+  }
+  conditionsBuffer.set(page, lines)
+}
+
+function consumeConditions(page: Page): string[] {
+  const lines = conditionsBuffer.get(page)
+  if (!lines?.length) return []
+  conditionsBuffer.set(page, [])
   return lines
 }
 

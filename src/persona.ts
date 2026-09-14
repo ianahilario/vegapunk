@@ -11,7 +11,8 @@ const personaSchema = z.object({
  * Validate and return a {@link Persona} for `explore({ persona })`.
  *
  * Pass the returned object — not `id` as a string. `id` is the log/report slug;
- * `profile` is what the model follows each turn, so write concrete habits.
+ * name it anything. `profile` is how this person uses the product. The agent
+ * sees every tool and chooses what fits the persona and mission.
  *
  * @param persona - `id`, `title`, and `profile` are all required and non-empty.
  * @returns The same persona after validation.
@@ -29,7 +30,7 @@ const personaSchema = z.object({
  *   MALICIOUS: createPersona({
  *     id: 'malicious',
  *     title: 'Malicious user',
- *     profile: 'Tries to abuse inputs, double-submit, tamper with the URL, and overrideRequest to change mutating API bodies.',
+ *     profile: 'Tries to abuse inputs and break out of the intended path.',
  *   }),
  *   ELDERLY: createPersona({
  *     id: 'elderly',
@@ -39,7 +40,7 @@ const personaSchema = z.object({
  *   A11YAUDITOR: createPersona({
  *     id: 'a11yauditor',
  *     title: 'Accessibility auditor',
- *     profile: 'Audits WCAG 2.2 AA. Runs scanA11y on each new view and tabs through primary controls.',
+ *     profile: 'Checks WCAG: names, contrast, and keyboard.',
  *   }),
  * }
  * ```

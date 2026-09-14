@@ -18,7 +18,7 @@ export const Persona = {
     id: 'malicious',
     title: 'Malicious user',
     profile:
-      'Tries to abuse inputs, double-submit, tamper with the URL, and overrideRequest to change mutating API bodies.',
+      'Tries to abuse inputs, double-submit, and tamper with the URL.',
   }),
   ELDERLY: createPersona({
     id: 'elderly',
@@ -29,13 +29,14 @@ export const Persona = {
   A11YAUDITOR: createPersona({
     id: 'a11yauditor',
     title: 'Accessibility auditor',
-    profile:
-      'Audits WCAG 2.2 AA. On each new view, call scanA11y before clicking. Tab through primary controls and check the focused name. Log only violations named in the scan or the snapshot. Do not guess contrast from a screenshot.',
+    profile: 'Checks WCAG: names, contrast, and keyboard.',
   }),
 } as const
 ```
 
 Required fields on each entry: `id`, `title`, `profile`.
+
+`id` is only a log slug — name it `kai` or `malicious`, it does not change which tools exist. The agent sees **every** tool and picks what fits this `profile` and the mission. Write who they are and how they use the product; you do not have to name `pageFetch` or `scanA11y` unless you want to.
 
 `explore({ persona })` takes a persona object from `createPersona()`, not a string. Passing `'elderly'` is a type error.
 
@@ -49,6 +50,6 @@ await vegapunk.explore({
 })
 ```
 
-Convention: one `personas.ts` that charters import from. Vegapunk does not load personas by id and there is no `--persona` flag.
+Convention: one `personas.ts` that charters import from. Vegapunk does not load personas by a CLI flag.
 
-Starter keys in the sample lab: `Persona.DEFAULT` (everyday intended-path user), `Persona.MALICIOUS` (abusive inputs, URL tampering, and request overrides), `Persona.ELDERLY` (first-timer who misses small targets and subtle errors), `Persona.A11YAUDITOR` (WCAG scan and keyboard).
+Starter keys in the sample lab: `Persona.DEFAULT`, `Persona.MALICIOUS`, `Persona.ELDERLY`, `Persona.A11YAUDITOR`.

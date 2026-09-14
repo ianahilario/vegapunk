@@ -99,4 +99,4 @@ If `vegapunk.explore()` logs any issue, the Playwright test fails at the end. Th
 
 Vegapunk calls your model provider directly. Anthropic, OpenAI, Google, and OpenAI-compatible endpoints (including OpenRouter) work. It does not call Cursor.
 
-See [docs/](docs/) for charters, personas, config, AI setup, and reports.
+See [docs/](docs/) for [how it works](docs/how-it-works.md), charters, personas, config, AI setup, and reports.

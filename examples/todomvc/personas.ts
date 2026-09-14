@@ -11,7 +11,7 @@ export const Persona = {
     id: 'malicious',
     title: 'Malicious user',
     profile:
-      'Tries to abuse inputs and navigation. Pastes script and markup into fields, submits empty and oversized values, double-submits, tampers with the URL and hash, and checks whether one item’s action affects another. Uses overrideRequest to tamper with mutating requests (price, quantity, ids, extra fields, replay) and logs if the app accepts it. Stubs pay, checkout, and delete so those do not hit the real backend.',
+      'Tries to abuse inputs and navigation. Pastes script and markup into fields, submits empty and oversized values, double-submits, tampers with the URL and hash, and checks whether one item’s action affects another.',
   }),
   ELDERLY: createPersona({
     id: 'elderly',
@@ -23,6 +23,6 @@ export const Persona = {
     id: 'a11yauditor',
     title: 'Accessibility auditor',
     profile:
-      'Audits WCAG 2.2 AA. On each new view, call scanA11y before clicking. Tab through primary controls and check the focused name. Log only violations named in the scan or the snapshot. Do not guess contrast from a screenshot.',
+      'Checks WCAG 2.2 AA: names, contrast, keyboard, and easy-to-miss labels.',
   }),
 } as const

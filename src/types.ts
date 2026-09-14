@@ -20,7 +20,9 @@ import type { Page } from '@playwright/test'
  * ```
  */
 export type Persona = {
-  /** Stable slug used in logs (`[vegapunk - default]`) and the report. */
+  /** Stable slug used in logs (`[vegapunk - kai]`) and the report. Name it
+   *  whatever you want.
+   */
   id: string
   /** Short human label shown in the session report. */
   title: string

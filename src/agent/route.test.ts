@@ -1,5 +1,11 @@
 import assert from 'node:assert/strict'
-import { guessContentType, isTooBroadRoutePattern, prepareRoutePattern } from './route.js'
+import {
+  formatStorageEntries,
+  guessContentType,
+  isTooBroadRoutePattern,
+  prepareFetchUrl,
+  prepareRoutePattern,
+} from './route.js'
 
 const here = new URL('https://shop.example/cart')
 
@@ -29,5 +35,15 @@ assert.equal(prepareRoutePattern('https://evil.example/**', here).ok, false)
 
 assert.equal(guessContentType('{"ok":true}'), 'application/json')
 assert.equal(guessContentType('nope'), 'text/plain')
+
+assert.equal(prepareFetchUrl('**/x', here).ok, false)
+assert.equal(prepareFetchUrl('https://evil.example/orders/1', here).ok, false)
+assert.deepEqual(prepareFetchUrl('/api/orders/124', here), {
+  ok: true,
+  href: 'https://shop.example/api/orders/124',
+})
+
+assert.deepEqual(formatStorageEntries('local', {}), ['local (empty)'])
+assert.equal(formatStorageEntries('cookie', { session: 'abc' })[0], 'cookie session=abc')
 
 console.log('route ok')

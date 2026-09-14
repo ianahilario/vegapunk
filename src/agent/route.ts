@@ -56,3 +56,45 @@ export function guessContentType(body: string): string {
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) return 'application/json'
   return 'text/plain'
 }
+
+export function clipText(value: string, max = 180): string {
+  const compact = value.replace(/\s+/g, ' ').trim()
+  return compact.length > max ? `${compact.slice(0, max)}…` : compact
+}
+
+export function prepareFetchUrl(
+  url: string,
+  current: URL,
+): { ok: true; href: string } | { ok: false; error: string } {
+  const trimmed = url.trim()
+  if (!trimmed) {
+    return { ok: false, error: 'Provide a URL.' }
+  }
+  if (trimmed.includes('*')) {
+    return { ok: false, error: 'pageFetch needs a concrete URL, not a glob.' }
+  }
+  try {
+    const next = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
+      ? new URL(trimmed)
+      : new URL(trimmed.startsWith('/') ? trimmed : `/${trimmed}`, current.origin)
+    if (next.origin !== current.origin) {
+      return { ok: false, error: 'Stay on the application origin.' }
+    }
+    return { ok: true, href: next.toString() }
+  } catch {
+    return { ok: false, error: 'URL is invalid.' }
+  }
+}
+
+export function formatStorageEntries(
+  kind: string,
+  entries: Record<string, string | null>,
+): string[] {
+  const keys = Object.keys(entries).slice(0, 20)
+  if (!keys.length) return [`${kind} (empty)`]
+  return keys.map((key) => {
+    const value = entries[key]
+    const shown = value == null ? 'null' : clipText(value, 80)
+    return `${kind} ${key}=${shown}`
+  })
+}
