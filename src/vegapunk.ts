@@ -73,8 +73,8 @@ export async function explore(options: ExploreOptions): Promise<void> {
     .soft(
       found.length,
       found.length
-        ? `${found.length} issue(s) found.\n${list}\nReport: ${session.sessionDir}/report.html`
-        : '',
+        ? `Expected 0 issues from this explore.\n${found.length} issue(s) found.\n${list}\nReport: ${session.sessionDir}/report.html`
+        : 'Expected 0 issues from this explore.',
     )
     .toBe(0)
 }
