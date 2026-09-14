@@ -1,8 +1,12 @@
+import { AxeBuilder } from '@axe-core/playwright'
 import { tool } from 'ai'
-import type { Page } from '@playwright/test'
+import type { Page, Route } from '@playwright/test'
 import { z } from 'zod'
+import { A11Y_TAGS, focusedControl, formatA11yViolations } from './a11y.js'
 import { logIssue } from './issues.js'
 import { journal } from './journal.js'
+import { guessContentType, prepareRoutePattern } from './route.js'
+import { recordA11yScan, recordKeyboard } from './snapshot.js'
 import type { SessionState } from './session.js'
 
 const targetSchema = z.object({
@@ -85,6 +89,8 @@ export function createTools(
   },
   options: { visual?: boolean } = {},
 ) {
+  const installedRoutes: { pattern: string; handler: (route: Route) => Promise<void> }[] = []
+
   const remaining = () =>
     session.callDeadline ? session.callDeadline - Date.now() : Number.POSITIVE_INFINITY
 
@@ -132,6 +138,7 @@ export function createTools(
   }
 
   return {
+    tools: {
     click: tool({
       description: 'Click a control.',
       parameters: targetSchema,
@@ -226,6 +233,144 @@ export function createTools(
         })
       },
     }),
+    tab: tool({
+      description:
+        'Move focus to the next (or previous) control and return its role and accessible name. Use this instead of press Tab when checking keyboard order.',
+      parameters: z.object({
+        shift: z.boolean().optional().describe('If true, tab backwards'),
+      }),
+      execute: async ({ shift }) => {
+        const key = shift ? 'Shift+Tab' : 'Tab'
+        try {
+          await runAction(async () => {
+            await page.keyboard.press(key)
+          })
+          const focused = await focusedControl(page)
+          const label = focused
+            ? `${key} to ${focused.role}${focused.name ? ` "${focused.name}"` : ''}`
+            : `${key} (no focused control)`
+          recordKeyboard(page, label)
+          journal(session, exploreIndex, 'action', label)
+          return { ok: true as const, url: page.url(), focused }
+        } catch (error) {
+          if (error instanceof Error && error.message === 'TIMEBOX') throw error
+          const message = firstLine(error)
+          journal(session, exploreIndex, 'action', `${key} failed: ${message}`)
+          return { ok: false as const, error: message }
+        }
+      },
+    }),
+    scanA11y: tool({
+      description:
+        'Run an axe WCAG scan on the current page. Call this on each new view before guessing contrast or missing names. Findings appear in the next snapshot as A11y scan lines you can quote in logIssue.',
+      parameters: z.object({}),
+      execute: async () => {
+        try {
+          const findings = await runAction(async () => {
+            const results = await new AxeBuilder({ page }).withTags(A11Y_TAGS).analyze()
+            return formatA11yViolations(results.violations)
+          })
+          recordA11yScan(page, findings)
+          const label = findings.length
+            ? `A11y scan: ${findings.length} issue(s)`
+            : 'A11y scan: no issues'
+          journal(session, exploreIndex, 'action', label)
+          return { ok: true as const, url: page.url(), issues: findings.length, findings }
+        } catch (error) {
+          if (error instanceof Error && error.message === 'TIMEBOX') throw error
+          const message = firstLine(error)
+          journal(session, exploreIndex, 'action', `A11y scan failed: ${message}`)
+          return { ok: false as const, error: message }
+        }
+      },
+    }),
+    overrideRequest: tool({
+      description:
+        'Intercept matching in-page XHR/fetch. Call this BEFORE the click that fires the request. abort/fulfill so pay, checkout, and delete do not hit the real backend. tamper to send a body or header the UI would not allow.',
+      parameters: z.object({
+        url: z
+          .string()
+          .describe('Path or Playwright glob, e.g. /api/checkout or **/checkout**'),
+        method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).optional(),
+        action: z.enum(['abort', 'fulfill', 'tamper']),
+        status: z.number().optional().describe('Status code when fulfilling. Default 200.'),
+        body: z
+          .string()
+          .optional()
+          .describe('JSON or text to fulfill with, or replacement POST body when tampering'),
+        headers: z.record(z.string()).optional(),
+        once: z.boolean().optional().describe('Remove the route after the first match'),
+      }),
+      execute: async ({ url, method, action, status, body, headers, once }) => {
+        if (action === 'tamper' && body == null && (!headers || !Object.keys(headers).length)) {
+          return { ok: false, error: 'tamper needs body or headers.' }
+        }
+        let current: URL
+        try {
+          current = new URL(page.url())
+        } catch {
+          return { ok: false, error: 'The page has no origin to intercept.' }
+        }
+        const prepared = prepareRoutePattern(url, current)
+        if (!prepared.ok) return prepared
+        const label = [
+          'Override',
+          method,
+          url,
+          '→',
+          action,
+          action === 'fulfill' ? String(status ?? 200) : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
+        return tryAction(label, async () => {
+          const handler = async (route: Route) => {
+            try {
+              const request = route.request()
+              if (request.method() === 'OPTIONS') {
+                await route.continue()
+                return
+              }
+              const reqUrl = new URL(request.url())
+              if (reqUrl.origin !== current.origin) {
+                await route.continue()
+                return
+              }
+              if (method && request.method().toUpperCase() !== method) {
+                await route.continue()
+                return
+              }
+              if (action === 'abort') {
+                await route.abort()
+                return
+              }
+              if (action === 'fulfill') {
+                const payload = body ?? '{}'
+                const contentType =
+                  headers?.['content-type'] ??
+                  headers?.['Content-Type'] ??
+                  guessContentType(payload)
+                await route.fulfill({
+                  status: status ?? 200,
+                  body: payload,
+                  contentType,
+                  headers,
+                })
+                return
+              }
+              await route.continue({
+                postData: body,
+                headers: headers ? { ...request.headers(), ...headers } : undefined,
+              })
+            } catch {
+              await route.continue().catch(() => {})
+            }
+          }
+          await page.route(prepared.pattern, handler, once ? { times: 1 } : undefined)
+          installedRoutes.push({ pattern: prepared.pattern, handler })
+        })
+      },
+    }),
     logIssue: tool({
       description:
         'Record a bug that is visible on the current page once. Do not refile the same defect with a new title. After logging, take a user action or call done. Do not call this in the same turn as a click, fill, or navigation.',
@@ -317,5 +462,12 @@ export function createTools(
         return { ok: true }
       },
     }),
+    },
+    dispose: async () => {
+      const routes = installedRoutes.splice(0, installedRoutes.length)
+      for (const { pattern, handler } of routes) {
+        await page.unroute(pattern, handler).catch(() => {})
+      }
+    },
   }
 }

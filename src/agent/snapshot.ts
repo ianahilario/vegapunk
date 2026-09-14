@@ -24,8 +24,21 @@ export async function captureSnapshot(page: Page): Promise<string> {
   const consoleBlock = consoles.length
     ? `\nConsole since last snapshot:\n${consoles.join('\n')}`
     : ''
+  const network = consumeNetwork(page)
+  const networkBlock = network.length
+    ? `\nNetwork since last snapshot:\n${network.join('\n')}`
+    : ''
 
-  return `URL: ${url}\nTitle: ${title}\n\n${tree}${consoleBlock}`
+  const a11y = consumeA11y(page)
+  const a11yBlock = a11y.length
+    ? `\nA11y scan:\n${a11y.join('\n')}`
+    : ''
+  const keyboard = consumeKeyboard(page)
+  const keyboardBlock = keyboard.length
+    ? `\nKeyboard:\n${keyboard.join('\n')}`
+    : ''
+
+  return `URL: ${url}\nTitle: ${title}\n\n${tree}${consoleBlock}${networkBlock}${a11yBlock}${keyboardBlock}`
 }
 
 const consoleBuffer = new WeakMap<Page, string[]>()
@@ -50,6 +63,104 @@ function consumeConsole(page: Page): string[] {
   if (!lines?.length) return []
   const copy = lines.splice(0, lines.length)
   return copy
+}
+
+const networkBuffer = new WeakMap<Page, string[]>()
+const NETWORK_BUFFER_MAX = 40
+const NETWORK_SNAPSHOT_MAX = 20
+const NETWORK_LINE_MAX = 240
+
+function isApiRequest(resourceType: string): boolean {
+  return resourceType === 'xhr' || resourceType === 'fetch'
+}
+
+function formatNetworkLine(method: string, url: string, suffix: string, postData?: string | null): string {
+  let path = url
+  try {
+    const parsed = new URL(url)
+    path = `${parsed.pathname}${parsed.search}`
+  } catch {
+    // keep the raw url
+  }
+  const body = postData?.trim()
+    ? ` ${postData.length > 180 ? `${postData.slice(0, 180)}…` : postData}`
+    : ''
+  return `${method} ${path} ${suffix}${body}`.slice(0, NETWORK_LINE_MAX)
+}
+
+function pushNetwork(page: Page, line: string): void {
+  const lines = networkBuffer.get(page)
+  if (!lines) return
+  lines.push(line)
+  if (lines.length > NETWORK_BUFFER_MAX) {
+    lines.splice(0, lines.length - NETWORK_BUFFER_MAX)
+  }
+}
+
+export function attachNetwork(page: Page): void {
+  if (networkBuffer.has(page)) return
+  const lines: string[] = []
+  networkBuffer.set(page, lines)
+  page.on('response', (response) => {
+    const request = response.request()
+    if (!isApiRequest(request.resourceType())) return
+    pushNetwork(
+      page,
+      formatNetworkLine(
+        request.method(),
+        request.url(),
+        String(response.status()),
+        request.postData(),
+      ),
+    )
+  })
+  page.on('requestfailed', (request) => {
+    if (!isApiRequest(request.resourceType())) return
+    const failure = request.failure()?.errorText ?? 'failed'
+    pushNetwork(
+      page,
+      formatNetworkLine(request.method(), request.url(), failure, request.postData()),
+    )
+  })
+}
+
+function consumeNetwork(page: Page): string[] {
+  const lines = networkBuffer.get(page)
+  if (!lines?.length) return []
+  const copy = lines.splice(0, lines.length)
+  return copy.slice(-NETWORK_SNAPSHOT_MAX)
+}
+
+const a11yBuffer = new WeakMap<Page, string[]>()
+
+export function recordA11yScan(page: Page, lines: string[]): void {
+  a11yBuffer.set(page, [...lines])
+}
+
+function consumeA11y(page: Page): string[] {
+  const lines = a11yBuffer.get(page)
+  if (!lines?.length) return []
+  a11yBuffer.set(page, [])
+  return lines
+}
+
+const keyboardBuffer = new WeakMap<Page, string[]>()
+const KEYBOARD_SNAPSHOT_MAX = 10
+
+export function recordKeyboard(page: Page, line: string): void {
+  const lines = keyboardBuffer.get(page) ?? []
+  lines.push(line)
+  if (lines.length > KEYBOARD_SNAPSHOT_MAX) {
+    lines.splice(0, lines.length - KEYBOARD_SNAPSHOT_MAX)
+  }
+  keyboardBuffer.set(page, lines)
+}
+
+function consumeKeyboard(page: Page): string[] {
+  const lines = keyboardBuffer.get(page)
+  if (!lines?.length) return []
+  keyboardBuffer.set(page, [])
+  return lines
 }
 
 async function fallbackTree(page: Page): Promise<string> {

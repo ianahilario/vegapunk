@@ -54,3 +54,16 @@ test('the list and filters stay readable without overlap, clip, or overflow', {
     timebox: 60_000,
   })
 })
+
+test('the todo list keeps names, contrast, and keyboard access', {
+  tag: ['@todos', '@a11y'],
+}, async ({ page }) => {
+  test.setTimeout(60_000 * 3)
+  await page.goto('./')
+  await vegapunk.explore({
+    page,
+    mission: 'Audit names, contrast, and keyboard access on the todo list and filters.',
+    persona: Persona.A11YAUDITOR,
+    timebox: 60_000 * 2,
+  })
+})

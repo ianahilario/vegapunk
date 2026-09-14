@@ -8,6 +8,7 @@ import { journal } from './journal.js'
 import { TAXONOMY, systemPrompt } from './prompt.js'
 import {
   attachConsole,
+  attachNetwork,
   captureSnapshot,
   captureViewport,
   looksBlocked,
@@ -88,6 +89,7 @@ export async function runExplore(
   })
 
   attachConsole(page)
+  attachNetwork(page)
   const visual = Boolean(options.visual)
   journal(
     session,
@@ -129,7 +131,13 @@ export async function runExplore(
       abort.abort()
     },
   }
-  const boundTools = createTools(page, session, exploreIndex, toolControl, { visual })
+  const { tools: boundTools, dispose: disposeTools } = createTools(
+    page,
+    session,
+    exploreIndex,
+    toolControl,
+    { visual },
+  )
 
   const closeExplore = (reason: string) => {
     if (!toolControl.done) {
@@ -249,6 +257,7 @@ export async function runExplore(
     }
   } finally {
     clearTimeout(abortTimer)
+    await disposeTools()
     const section = session.explores[exploreIndex]
     if (section) section.endedAt = new Date().toISOString()
   }

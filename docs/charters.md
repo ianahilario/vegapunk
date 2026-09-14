@@ -52,6 +52,10 @@ await vegapunk.explore({
 
 You may call `vegapunk.explore()` more than once. Each call uses config `timebox` unless you pass one. Issues from the first call do not skip later calls or teardown. The test fails **at the end** if any issue was logged.
 
+The agent can call `overrideRequest` to abort, mock, or tamper with same-origin XHR/fetch (checkout, pay, delete). Routes are removed when that `explore()` ends. Snapshots include recent Network lines so it can learn URLs. Charter-level `page.route()` still works for setup; the agent cannot see those routes, only the traffic.
+
+`scanA11y` runs axe (WCAG 2.2 AA tags) on the current page. Findings show up on the next snapshot as A11y scan lines the agent can quote. `tab` moves focus and returns the focused role and name — use that for keyboard order, not `press` with Tab.
+
 ## Timebox vs timeout
 
 - Config **`timebox`** — Vegapunk’s default exploration stop. `vegapunk.explore({ timebox })` overrides it for that call. When the clock hits, the in-flight model call is aborted and the session closes immediately. There is no extra wrap-up turn.
@@ -63,4 +67,4 @@ Raise Playwright `timeout` when you have several `vegapunk.explore()` calls so t
 
 Use Playwright `{ tag: '@todos' }` or `{ tag: ['@todos', '@filters'] }`. Do not put `@tags` in the title.
 
-The TodoMVC lab’s `todos.spec.ts` also shows `visual` and `ai`. Run the vision one with `--grep=@visual` and a vision-capable model.
+The TodoMVC lab’s `todos.spec.ts` also shows `visual`, `ai`, and an `@a11y` auditor pass. Run the vision one with `--grep=@visual` and a vision-capable model. Run the scan with `--grep=@a11y`.

@@ -18,13 +18,19 @@ export const Persona = {
     id: 'malicious',
     title: 'Malicious user',
     profile:
-      'Tries to abuse inputs, double-submit, and tamper with the URL.',
+      'Tries to abuse inputs, double-submit, tamper with the URL, and overrideRequest to change mutating API bodies.',
   }),
   ELDERLY: createPersona({
     id: 'elderly',
     title: 'Elderly first-time user',
     profile:
       'In their 70s, new to the product. Reads slowly, prefers large tap targets, gets lost in nested menus, misses subtle error text.',
+  }),
+  A11YAUDITOR: createPersona({
+    id: 'a11yauditor',
+    title: 'Accessibility auditor',
+    profile:
+      'Audits WCAG 2.2 AA. On each new view, call scanA11y before clicking. Tab through primary controls and check the focused name. Log only violations named in the scan or the snapshot. Do not guess contrast from a screenshot.',
   }),
 } as const
 ```
@@ -45,4 +51,4 @@ await vegapunk.explore({
 
 Convention: one `personas.ts` that charters import from. Vegapunk does not load personas by id and there is no `--persona` flag.
 
-Starter keys in the sample lab: `Persona.DEFAULT` (everyday intended-path user), `Persona.MALICIOUS` (abusive inputs and URL tampering), `Persona.ELDERLY` (first-timer who misses small targets and subtle errors).
+Starter keys in the sample lab: `Persona.DEFAULT` (everyday intended-path user), `Persona.MALICIOUS` (abusive inputs, URL tampering, and request overrides), `Persona.ELDERLY` (first-timer who misses small targets and subtle errors), `Persona.A11YAUDITOR` (WCAG scan and keyboard).

@@ -13,4 +13,5 @@ export default defineConfig({
   cjsInterop: true,
   target: 'node20',
   shims: true,
+  external: ['@axe-core/playwright', 'axe-core'],
 })

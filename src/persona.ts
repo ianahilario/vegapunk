@@ -29,12 +29,17 @@ const personaSchema = z.object({
  *   MALICIOUS: createPersona({
  *     id: 'malicious',
  *     title: 'Malicious user',
- *     profile: 'Tries to abuse inputs, double-submit, and tamper with the URL.',
+ *     profile: 'Tries to abuse inputs, double-submit, tamper with the URL, and overrideRequest to change mutating API bodies.',
  *   }),
  *   ELDERLY: createPersona({
  *     id: 'elderly',
  *     title: 'Elderly first-time user',
  *     profile: 'In their 70s, new to the product. Prefers large targets and misses subtle error text.',
+ *   }),
+ *   A11YAUDITOR: createPersona({
+ *     id: 'a11yauditor',
+ *     title: 'Accessibility auditor',
+ *     profile: 'Audits WCAG 2.2 AA. Runs scanA11y on each new view and tabs through primary controls.',
  *   }),
  * }
  * ```
