@@ -2,14 +2,29 @@ import { test } from '@playwright/test'
 import { vegapunk } from 'vegapunk'
 import { Persona } from '../personas'
 
+test('a user can add a todo item', {
+  tag: ['@todos', '@filters'],
+}, async ({ page }) => {
+  test.setTimeout(60_000 * 6)
+  await page.goto('./')
+  await vegapunk.explore({
+    page,
+    mission: `Don't do anything else other than adding 1 todo item.`,
+    persona: Persona.DEFAULT,
+    timebox: 60_000 * 5,
+  })
+})
+
 test('a user can add, complete, and filter their items', {
   tag: ['@todos', '@filters'],
 }, async ({ page }) => {
+  test.setTimeout(60_000 * 6)
   await page.goto('./')
   await vegapunk.explore({
     page,
     mission: 'Explore adding, completing, and filtering todos.',
     persona: Persona.DEFAULT,
+    timebox: 60_000 * 5,
   })
 })
 
