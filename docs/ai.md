@@ -65,3 +65,21 @@ ai: {
   baseURL: process.env.AI_BASE_URL,
 }
 ```
+
+## Production isolation
+
+The provider runs only in the Playwright process — the Node job that executes `npx playwright test`. The production app never imports Vegapunk and should never hold a provider key.
+
+`allowedOrigins` is the guard on the other channel: the browser page. `explore()` throws **before** any model call if `page.url()` or Playwright `baseURL` is not on that list, and again after any tool that can change origin if that action left the list. A production hostname must not appear there. Regex entries match the **origin** only (`https://host:port`), as a whole string — never the path or the full URL.
+
+```ts
+allowedOrigins: [
+  'https://staging.example.com',
+  'http://localhost:3000',
+  /^https:\/\/pr-\d+\.preview\.example\.com$/,
+]
+```
+
+Prefer exact origin strings when the host is fixed. Use a `RegExp` literal or `new RegExp()` when preview hosts change. A string that looks like a pattern is not compiled; it must be an absolute URL.
+
+This stops the **environment**. A staging database cloned from production can still contain PII — that is org data handling, not this guard. Snapshots, `visual: true` JPEGs, and tool output go to the model only after the origin check passes.

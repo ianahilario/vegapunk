@@ -8,6 +8,8 @@ npm i -D vegapunk
 
 Copy [examples/todomvc](../examples/todomvc) or add `vegapunk.config.ts`, `playwright.config.ts`, `personas.ts`, and a charter yourself. Gitignore `test-results/` and `playwright-report/`.
 
+`vegapunk.config.ts` needs `ai`, `timebox`, and `allowedOrigins` (the hosts the agent may look at — staging, local, preview; not production). See [config.md](config.md).
+
 Register `vegapunk/reporter` in `playwright.config.ts`.
 
 ## API key

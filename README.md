@@ -23,10 +23,10 @@ npm i -D vegapunk
 
 Add two configs next to each other:
 
-- `vegapunk.config.ts` — model settings (`ai`) and default `timebox`
+- `vegapunk.config.ts` — model settings (`ai`), default `timebox`, and `allowedOrigins`
 - `playwright.config.ts` — `timeout`, `use`, `projects`, `outputDir`, and `vegapunk/reporter`
 
-Copy [examples/todomvc](examples/todomvc) if you want a working lab. Run charters with Playwright. `vegapunk.explore()` loads `vegapunk.config.ts` for the model and default timebox.
+Copy [examples/todomvc](examples/todomvc) if you want a working lab. Run charters with Playwright. `vegapunk.explore()` loads `vegapunk.config.ts` for the model, default timebox, and allowed origins.
 
 `ai.apiKey` is required. How you load the key is up to you.
 
@@ -35,6 +35,7 @@ import { defineConfig } from 'vegapunk'
 
 export default defineConfig({
   timebox: 10 * 60 * 1000,
+  allowedOrigins: ['https://staging.example.com', 'http://localhost:3000'],
   ai: {
     provider: 'openai-compatible',
     model: 'deepseek/deepseek-v4-flash',
@@ -97,6 +98,6 @@ await vegapunk.explore({
 
 If `vegapunk.explore()` logs any issue, the Playwright test fails at the end. The Vegapunk HTML report is the handoff (expected / actual, user-level repro steps).
 
-Vegapunk calls your model provider directly. Anthropic, OpenAI, Google, and OpenAI-compatible endpoints (including OpenRouter) work. It does not call Cursor.
+Vegapunk calls your model provider directly. Anthropic, OpenAI, Google, and OpenAI-compatible endpoints (including OpenRouter) work. It does not call Cursor. `allowedOrigins` in `vegapunk.config.ts` is required: the model is not called unless the page is on that list. See [docs/ai.md](docs/ai.md).
 
 See [docs/](docs/) for [how it works](docs/how-it-works.md), charters, personas, config, AI setup, and reports.

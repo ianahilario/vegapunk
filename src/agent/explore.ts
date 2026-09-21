@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test'
 import { parseDuration } from '../duration.js'
 import type { ExploreOptions } from '../types.js'
 import { loadConfig } from '../config/load.js'
+import { parseAllowedOrigins, assertAllowedOrigin, isOriginRefusedError } from './allowed-origin.js'
 import { createModel } from './model.js'
 import { journal } from './journal.js'
 import { TAXONOMY, systemPrompt } from './prompt.js'
@@ -68,6 +69,13 @@ export async function runExplore(
   }
 
   const loaded = await loadConfig(process.cwd())
+  const allowedOrigins = parseAllowedOrigins(loaded.config.allowedOrigins)
+  const playwrightBaseURL = session.testInfo.project.use.baseURL
+  if (playwrightBaseURL) {
+    assertAllowedOrigin(playwrightBaseURL, allowedOrigins)
+  }
+  assertAllowedOrigin(page.url(), allowedOrigins)
+
   const timebox = options.timebox ?? loaded.config.timebox
   const callBudget = parseDuration(timebox)
   const callDeadline = Date.now() + callBudget
@@ -100,7 +108,6 @@ export async function runExplore(
 
   const ai = { ...loaded.config.ai, ...options.ai }
   const temperature = ai.temperature ?? 0.6
-  const model = createModel(ai)
 
   let snapshot = await captureSnapshot(page)
   if (await looksBlocked(page, snapshot)) {
@@ -108,6 +115,7 @@ export async function runExplore(
     if (headed) {
       journal(session, exploreIndex, 'thought', 'Possible auth/MFA blocker — pausing for a human.')
       await page.pause()
+      assertAllowedOrigin(page.url(), allowedOrigins)
       snapshot = await captureSnapshot(page)
     } else {
       throw new Error(
@@ -115,6 +123,8 @@ export async function runExplore(
       )
     }
   }
+
+  const model = createModel(ai)
 
   const abort = new AbortController()
   const abortTimer = setTimeout(
@@ -136,7 +146,7 @@ export async function runExplore(
     session,
     exploreIndex,
     toolControl,
-    { visual },
+    { visual, allowedOrigins },
   )
 
   const closeExplore = (reason: string) => {
@@ -168,6 +178,7 @@ export async function runExplore(
       }
       steps += 1
 
+      assertAllowedOrigin(page.url(), allowedOrigins)
       snapshot = await captureSnapshot(page)
       if (abort.signal.aborted || Date.now() >= callDeadline) {
         closeExplore('Timebox reached.')
@@ -215,6 +226,7 @@ export async function runExplore(
           temperature,
           abortSignal: abort.signal,
         })
+        assertAllowedOrigin(page.url(), allowedOrigins)
         if (result.text) {
           journal(session, exploreIndex, 'thought', result.text.slice(0, 400))
         }
@@ -225,11 +237,13 @@ export async function runExplore(
         }
         if (toolControl.done) break
       } catch (error) {
+        if (isOriginRefusedError(error)) throw error
         if (toolControl.done) break
         if (isTimeboxStop(error)) {
           closeExplore('Timebox reached.')
           break
         }
+        if (isOriginRefusedError(error)) throw error
         const message = error instanceof Error ? error.message : String(error)
         if (visual && isVisionRejected(message)) {
           throw new Error(

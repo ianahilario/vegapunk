@@ -14,6 +14,7 @@ You (the charter)
 
 Vegapunk
   load vegapunk.config.ts
+  refuse the page unless its origin is on allowedOrigins
   attach console + XHR/fetch listeners
   loop: snapshot → model → tools
   write the session report
@@ -32,12 +33,13 @@ Playwright owns the browser, timeout, projects, and `baseURL`. Vegapunk owns one
 ## One `explore()` call
 
 1. Load `vegapunk.config.ts` (or `VEGAPUNK_CONFIG`). Merge `explore({ ai })` over config `ai`.
-2. Start a per-call deadline from config `timebox`, or `explore({ timebox })` if you passed one. If Playwright’s test `timeout` is lower than that budget, Vegapunk throws before the loop.
-3. Attach console and XHR/fetch listeners on the page (once per page).
-4. Snapshot the current page. If it looks like an auth/MFA wall: headed runs `page.pause()` so a human can finish login; headless throws.
-5. Run the turn loop.
-6. Tear down agent routes, dialog handlers, offline/throttle, and `emulateMedia`.
-7. Write `report.html` / `report.json`, attach the HTML to the Playwright test, and `expect.soft` that **this** call logged zero issues.
+2. If Playwright `baseURL` or `page.url()` is not on `allowedOrigins`, throw. The model is not created and no snapshot is sent.
+3. Start a per-call deadline from config `timebox`, or `explore({ timebox })` if you passed one. If Playwright’s test `timeout` is lower than that budget, Vegapunk throws before the loop.
+4. Attach console and XHR/fetch listeners on the page (once per page).
+5. Snapshot the current page. If it looks like an auth/MFA wall: headed runs `page.pause()` so a human can finish login; headless throws. After a pause, the origin is checked again.
+6. Run the turn loop.
+7. Tear down agent routes, dialog handlers, offline/throttle, and `emulateMedia`.
+8. Write `report.html` / `report.json`, attach the HTML to the Playwright test, and `expect.soft` that **this** call logged zero issues.
 
 Issues from an earlier call do not skip later calls or teardown. Soft assertions fail the test after the body finishes.
 
@@ -47,6 +49,7 @@ Each turn is one model call (`maxSteps: 1`). Tools from that call run immediatel
 
 ```text
 while not done, under 80 turns, and ≥2s left on the timebox:
+  refuse the page if its origin left allowedOrigins (do not send that snapshot)
   snapshot the page (ARIA tree + recent listener/tool notes)
   user message:
     time left
@@ -56,6 +59,7 @@ while not done, under 80 turns, and ≥2s left on the timebox:
     optional viewport JPEG (visual: true)
   model generates (persona + mission as the system prompt)
   tools execute (click, fill, logIssue, done, …)
+  click / press / fill / check / uncheck / selectOption / tab / goto / goBack throw if the page origin left allowedOrigins
   journal any assistant text as a thought
 ```
 
@@ -125,7 +129,7 @@ Bound to the current Playwright `page`. Locators prefer **role + accessible name
 
 Guards the model cannot skip:
 
-- Stay on the app origin. With Playwright `baseURL` set, `goto` also stays under that path prefix. `/` means the app base, not the site origin.
+- Stay on the app origin. With Playwright `baseURL` set, `goto` also stays under that path prefix. `/` means the app base, not the site origin. `goto` is refused if the next origin is not on `allowedOrigins`. After any tool that can change origin (`click`, `press`, `fill`, `check`, `uncheck`, `selectOption`, `tab`, `goto`, `goBack`), if the page left the list, `explore()` throws and later tools in that turn do not keep running.
 - `overrideRequest` is same-origin and not a catch-all (`**/*` is rejected). Cross-origin requests are left alone.
 - `pageFetch` needs a concrete path, not a glob.
 - At most 40 mutating actions per 60 seconds. Each action’s Playwright timeout is 0.5–8s, shrinking as the timebox ends.
@@ -171,3 +175,4 @@ The journal is also printed to the console as `[vegapunk - {persona id}]`. `vega
 - Wrap up politely when the timebox hits.
 - Skip later `explore()` calls because the first one found a bug.
 - Intercept third-party hosts or your existing `page.route()` setup.
+- Call the model on a page whose origin is not in `allowedOrigins`.

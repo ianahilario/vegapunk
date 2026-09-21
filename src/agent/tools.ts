@@ -19,6 +19,13 @@ import {
   recordKeyboard,
   recordStorage,
 } from './snapshot.js'
+import {
+  assertAllowedOrigin,
+  isOriginAllowed,
+  isOriginRefusedError,
+  refusedOriginMessage,
+  type AllowedOriginRule,
+} from './allowed-origin.js'
 import type { SessionState } from './session.js'
 
 const targetSchema = z.object({
@@ -99,7 +106,7 @@ export function createTools(
     issuesOnUnchangedView: number
     stop: () => void
   },
-  options: { visual?: boolean } = {},
+  options: { visual?: boolean; allowedOrigins: AllowedOriginRule[] },
 ) {
   const installedRoutes: { pattern: string; handler: (route: Route) => Promise<void> }[] = []
   const dialogHandlers: Array<(dialog: Dialog) => void> = []
@@ -122,6 +129,10 @@ export function createTools(
 
   const actionTimeout = () => Math.max(500, Math.min(8_000, remaining()))
 
+  const assertPageAllowed = () => {
+    assertAllowedOrigin(page.url(), options.allowedOrigins)
+  }
+
   const runAction = async <T>(fn: () => Promise<T>): Promise<T> => {
     rateLimit()
     control.mutatedThisStep = true
@@ -130,6 +141,7 @@ export function createTools(
       control.issuesOnUnchangedView = 0
       return result
     } catch (error) {
+      if (isOriginRefusedError(error)) throw error
       if (remaining() <= 0) throw new Error('TIMEBOX')
       throw error
     }
@@ -145,6 +157,7 @@ export function createTools(
       return { ok: true, url: page.url() }
     } catch (error) {
       if (error instanceof Error && error.message === 'TIMEBOX') throw error
+      if (isOriginRefusedError(error)) throw error
       const message = firstLine(error)
       journal(session, exploreIndex, 'action', `${label} failed: ${message}`)
       return { ok: false, error: message }
@@ -160,7 +173,10 @@ export function createTools(
         const loc = locator(page, target).first()
         return tryAction(
           `Click ${target.role ?? ''} ${target.name ?? target.selector ?? ''}`.trim(),
-          () => loc.click({ timeout: actionTimeout() }),
+          async () => {
+            await loc.click({ timeout: actionTimeout() })
+            assertPageAllowed()
+          },
         )
       },
     }),
@@ -172,7 +188,10 @@ export function createTools(
       execute: async ({ value, ...target }) => {
         return tryAction(
           `Fill ${[target.role, target.name ?? target.selector ?? 'field'].filter(Boolean).join(' ')} with "${value}"`,
-          () => locator(page, target).first().fill(value, { timeout: actionTimeout() }),
+          async () => {
+            await locator(page, target).first().fill(value, { timeout: actionTimeout() })
+            assertPageAllowed()
+          },
         )
       },
     }),
@@ -188,6 +207,7 @@ export function createTools(
           } else {
             await page.keyboard.press(key)
           }
+          assertPageAllowed()
         })
       },
     }),
@@ -195,18 +215,20 @@ export function createTools(
       description: 'Check a checkbox or radio.',
       parameters: targetSchema,
       execute: async (target) => {
-        return tryAction(`Check ${target.name ?? target.role}`, () =>
-          locator(page, target).first().check({ timeout: actionTimeout() }),
-        )
+        return tryAction(`Check ${target.name ?? target.role}`, async () => {
+          await locator(page, target).first().check({ timeout: actionTimeout() })
+          assertPageAllowed()
+        })
       },
     }),
     uncheck: tool({
       description: 'Uncheck a checkbox.',
       parameters: targetSchema,
       execute: async (target) => {
-        return tryAction(`Uncheck ${target.name ?? target.role}`, () =>
-          locator(page, target).first().uncheck({ timeout: actionTimeout() }),
-        )
+        return tryAction(`Uncheck ${target.name ?? target.role}`, async () => {
+          await locator(page, target).first().uncheck({ timeout: actionTimeout() })
+          assertPageAllowed()
+        })
       },
     }),
     selectOption: tool({
@@ -217,6 +239,7 @@ export function createTools(
       execute: async ({ value, ...target }) => {
         return tryAction(`Select ${value}`, async () => {
           await locator(page, target).first().selectOption(value, { timeout: actionTimeout() })
+          assertPageAllowed()
         })
       },
     }),
@@ -233,8 +256,12 @@ export function createTools(
         if (!staysOnApp(next, current, baseURL)) {
           return { ok: false, error: 'Stay on the application baseURL.' }
         }
+        if (!isOriginAllowed(next.toString(), options.allowedOrigins)) {
+          return { ok: false, error: refusedOriginMessage(next.toString(), options.allowedOrigins) }
+        }
         return tryAction(`Go to ${next.pathname}${next.hash}`, async () => {
           await page.goto(next.toString(), { timeout: actionTimeout() })
+          assertPageAllowed()
         })
       },
     }),
@@ -244,6 +271,7 @@ export function createTools(
       execute: async () => {
         return tryAction('Go back', async () => {
           await page.goBack({ timeout: actionTimeout() })
+          assertPageAllowed()
         })
       },
     }),
@@ -258,6 +286,7 @@ export function createTools(
         try {
           await runAction(async () => {
             await page.keyboard.press(key)
+            assertPageAllowed()
           })
           const focused = await focusedControl(page)
           const label = focused
@@ -268,6 +297,7 @@ export function createTools(
           return { ok: true as const, url: page.url(), focused }
         } catch (error) {
           if (error instanceof Error && error.message === 'TIMEBOX') throw error
+          if (isOriginRefusedError(error)) throw error
           const message = firstLine(error)
           journal(session, exploreIndex, 'action', `${key} failed: ${message}`)
           return { ok: false as const, error: message }

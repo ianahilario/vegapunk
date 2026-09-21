@@ -273,6 +273,7 @@ export type AiConfig = {
  *
  * export default defineConfig({
  *   timebox: 120_000,
+ *   allowedOrigins: ['https://staging.example.com', 'http://localhost:3000'],
  *   ai: {
  *     provider: 'openai-compatible',
  *     model: 'deepseek/deepseek-v4-flash',
@@ -293,6 +294,26 @@ export type VegapunkConfig = {
    * ```
    */
   timebox: number
+  /**
+   * Origins the agent may look at. `explore()` throws before any model call
+   * if the page (or Playwright `baseURL`) is not on this list, so a production
+   * page is never sent to the provider.
+   *
+   * Strings are exact origins (`https://staging.example.com`). `RegExp` values
+   * (literals or `new RegExp()`) match the origin only, as a whole string —
+   * use those for preview hosts that change. Prefer exact strings when the
+   * host is fixed.
+   *
+   * @example
+   * ```ts
+   * allowedOrigins: [
+   *   'https://staging.example.com',
+   *   'http://localhost:3000',
+   *   /^https:\/\/pr-\d+\.preview\.example\.com$/,
+   * ]
+   * ```
+   */
+  allowedOrigins: (string | RegExp)[]
   /**
    * Default model for every `vegapunk.explore()`. Override per call with
    * `vegapunk.explore({ ai })`.

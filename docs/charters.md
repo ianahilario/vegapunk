@@ -30,7 +30,7 @@ test('a user can review settings then leave signed out', { tag: '@settings' }, a
 
 Required:
 
-- `page` — the Playwright page (already on the screen you want explored)
+- `page` — the Playwright page (already on the screen you want explored). The page origin (and Playwright `baseURL`, if set) must match `allowedOrigins` in `vegapunk.config.ts` or `explore()` throws before it calls the model.
 - `mission`
 - `persona` — a `Persona` from `createPersona()`, not a string
 

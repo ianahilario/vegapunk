@@ -3,6 +3,7 @@ import { dirname, resolve } from 'node:path'
 import dotenv from 'dotenv'
 import { createJiti } from 'jiti'
 import { z } from 'zod'
+import { parseAllowedOrigins } from '../agent/allowed-origin.js'
 import { parseDuration } from '../duration.js'
 import type { VegapunkConfig } from '../types.js'
 
@@ -15,6 +16,10 @@ const aiSchema = z.object({
   baseURL: z.string().optional(),
   temperature: z.number().optional(),
 })
+
+const allowedOriginsSchema = z
+  .array(z.union([z.string(), z.instanceof(RegExp)]))
+  .min(1, 'allowedOrigins must list at least one origin string or RegExp')
 
 export type LoadedConfig = {
   config: VegapunkConfig
@@ -76,6 +81,13 @@ export function validateConfig(raw: VegapunkConfig): VegapunkConfig {
     )
   }
   parseDuration(raw.timebox)
+  if (raw.allowedOrigins === undefined) {
+    throw new Error(
+      'vegapunk.config.ts requires allowedOrigins (at least one origin string or RegExp). The model is not called until the page origin matches.',
+    )
+  }
+  allowedOriginsSchema.parse(raw.allowedOrigins)
+  parseAllowedOrigins(raw.allowedOrigins)
 
   return raw
 }

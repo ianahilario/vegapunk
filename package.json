@@ -58,7 +58,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "jiti src/duration.test.ts && jiti src/config/load.test.ts && jiti src/agent/route.test.ts && jiti src/agent/a11y.test.ts",
+    "test": "jiti src/duration.test.ts && jiti src/config/load.test.ts && jiti src/agent/route.test.ts && jiti src/agent/a11y.test.ts && jiti src/agent/allowed-origin.test.ts",
     "test:example": "npm --prefix examples/todomvc run ui",
     "prepublishOnly": "npm run build"
   },
