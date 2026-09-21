@@ -1,6 +1,6 @@
 {
   "name": "vegapunk",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "AI-assisted exploratory testing on top of Playwright",
   "type": "module",
   "license": "MIT",
