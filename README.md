@@ -38,7 +38,7 @@ export default defineConfig({
   allowedOrigins: ['https://staging.example.com', 'http://localhost:3000'],
   ai: {
     provider: 'openai-compatible',
-    model: 'deepseek/deepseek-v4-flash',
+    model: '~typesafe/jev-latest',
     apiKey: process.env.AI_API_KEY ?? '',
     baseURL: 'https://openrouter.ai/api/v1',
   },
@@ -46,6 +46,8 @@ export default defineConfig({
 ```
 
 `timebox` in `vegapunk.config.ts` is how long each agent call may run. Pass `timebox` on `vegapunk.explore()` only when that call should differ. `timeout` is Playwright’s limit for the whole test — set it in `playwright.config.ts`.
+
+`~typesafe/jev-latest` (or a pinned slug such as `typesafe/jev-1.13`) is a decisions model, not a chat model. Keep `provider: 'openai-compatible'` and `baseURL` at `https://openrouter.ai/api/v1`. Vegapunk detects the Jev slug and calls OpenRouter’s Decisions API. Each turn Jev picks a Playwright tool, then picks arguments from the page snapshot. A chat slug such as `deepseek/deepseek-v4-flash` still works on the same config. `visual: true` needs a vision-capable chat model — Jev cannot read screenshots.
 
 A persona is who is exploring and how they use the product. `vegapunk.explore({ persona })` takes a `Persona` from `createPersona()`, not a string.
 

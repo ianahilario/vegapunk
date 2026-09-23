@@ -47,10 +47,12 @@ Issues from an earlier call do not skip later calls or teardown. Soft assertions
 
 Each turn is one model call (`maxSteps: 1`). Tools from that call run immediately. Tool results are **not** fed back to the model in the same turn. The next turn starts with a fresh snapshot, so the model sees the page *after* those tools, not a tool-result blob.
 
+If `ai.model` is a TypeSafe Jev slug (`~typesafe/jev-latest`, `typesafe/jev-1.13`), the turn is a Decisions API call instead of chat completions. Vegapunk offers every Playwright tool that has arguments on this snapshot (controls, Network/Fetch paths, storage keys, plus fill/key/file catalogs). Jev picks the tool, then the argument set. Jev does not generate tool JSON or issue prose.
+
 ```text
 while not done, under 80 turns, and ≥2s left on the timebox:
   refuse the page if its origin left allowedOrigins (do not send that snapshot)
-  snapshot the page (ARIA tree + recent listener/tool notes)
+  snapshot the page after the accessibility tree stops changing (ARIA tree + recent listener/tool notes)
   user message:
     time left
     “only log what THIS snapshot shows”
@@ -92,7 +94,7 @@ A short per-page checklist (forms, back, empty/error states, console, network, a
 
 ### Snapshot
 
-Playwright `ariaSnapshot()` of `body` (role/name tree), plus:
+Playwright `ariaSnapshot()` of `body` (role/name tree). Vegapunk samples that tree for at least a tenth of a second and until two reads match, up to half a second, so a click that only changes the hash is not snapshotted on the frame before the new view paints. Then:
 
 | Block | Source | Lifetime |
 | --- | --- | --- |
@@ -144,7 +146,7 @@ Guards the model cannot skip:
 Before an issue is kept:
 
 1. **Same turn as an action** — rejected. Click/fill/navigate, wait for the next snapshot, then log. The failing view has to be in *this* snapshot, not the one from before the click.
-2. **Evidence** — `evidence` must be a short quote from the current snapshot (label, item, console/network/a11y/fetch line). Empty evidence is rejected. With `visual: true`, a screenshot-only defect may pass without that quote living in the ARIA tree, but evidence still cannot be blank.
+2. **Evidence** — `evidence` must be a short quote from the current snapshot (label, item, console/network/a11y/fetch line). Empty evidence is rejected. With `visual: true`, a `visual` defect (overlap, clip, overflow, alignment) may pass without that quote living in the ARIA tree. Quotes in `actual` still have to be on this snapshot: a remembered label from an earlier screen, or a counter like “1 item left”, is not a visible row.
 3. **Duplicate** — same path (origin + pathname) and overlapping title/actual wording as an issue already in this test session → rejected with the existing id.
 4. **Unchanged view** — at most two issues before the page is mutated again. After that: click, filter, or `done`.
 

@@ -104,6 +104,8 @@ export function createTools(
     lastActions: number[]
     mutatedThisStep: boolean
     issuesOnUnchangedView: number
+    /** Snapshot shown to the model on this turn, including one-shot tool notes. */
+    turnSnapshot: string
     stop: () => void
   },
   options: { visual?: boolean; allowedOrigins: AllowedOriginRule[] },
@@ -725,12 +727,12 @@ export function createTools(
         const outcome = await logIssue(session, page, exploreIndex, {
           ...input,
           visual: options.visual,
+          snapshot: control.turnSnapshot,
         })
         if (outcome.status === 'no-evidence') {
           return {
             ok: false,
-            error:
-              'evidence is not in the current snapshot. Recreate the failing view, then log only what this snapshot shows.',
+            error: outcome.reason,
           }
         }
         if (outcome.status === 'duplicate') {

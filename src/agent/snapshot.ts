@@ -9,16 +9,71 @@ export async function captureViewport(page: Page): Promise<Buffer> {
   })
 }
 
+const SETTLE_MS = 500
+const SETTLE_MIN_MS = 100
+
+/**
+ * Read until two samples match, or the timeout hits.
+ * A hash route can update the URL inside `click()` and paint the filtered list on a later frame.
+ */
+export async function waitUntilStable(
+  read: () => Promise<string>,
+  wait: () => Promise<void>,
+  timeoutMs: number,
+  now: () => number = Date.now,
+  minMs = 0,
+): Promise<string> {
+  const start = now()
+  const deadline = start + timeoutMs
+  let previous = ''
+  let latest = ''
+  let changed = false
+  while (now() <= deadline) {
+    latest = await read()
+    if (previous && latest !== previous) changed = true
+    const held = previous && latest === previous
+    if (held && (changed || now() - start >= minMs)) return latest
+    previous = latest
+    if (now() >= deadline) break
+    await wait()
+  }
+  return latest
+}
+
+async function nextPaint(page: Page): Promise<void> {
+  await Promise.race([
+    page
+      .evaluate(
+        () =>
+          new Promise<void>((resolve) => {
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+          }),
+      )
+      .catch(() => {}),
+    new Promise<void>((resolve) => setTimeout(resolve, 100)),
+  ])
+}
+
+async function readSettledTree(page: Page): Promise<string> {
+  try {
+    const tree = await waitUntilStable(
+      () => page.locator('body').ariaSnapshot(),
+      () => nextPaint(page),
+      SETTLE_MS,
+      Date.now,
+      SETTLE_MIN_MS,
+    )
+    if (tree.trim()) return tree
+  } catch {
+    // The tree can throw mid-navigation. Fall back to a short element list.
+  }
+  return fallbackTree(page)
+}
+
 export async function captureSnapshot(page: Page): Promise<string> {
   const url = page.url()
   const title = await page.title().catch(() => '')
-  let tree = ''
-
-  try {
-    tree = await page.locator('body').ariaSnapshot()
-  } catch {
-    tree = await fallbackTree(page)
-  }
+  const tree = await readSettledTree(page)
 
   const consoles = consumeConsole(page)
   const consoleBlock = consoles.length

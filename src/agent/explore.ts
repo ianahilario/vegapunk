@@ -4,6 +4,7 @@ import { parseDuration } from '../duration.js'
 import type { ExploreOptions } from '../types.js'
 import { loadConfig } from '../config/load.js'
 import { parseAllowedOrigins, assertAllowedOrigin, isOriginRefusedError } from './allowed-origin.js'
+import { isJevModel, runJevExplore } from './jev.js'
 import { createModel } from './model.js'
 import { journal } from './journal.js'
 import { TAXONOMY, systemPrompt } from './prompt.js'
@@ -124,7 +125,11 @@ export async function runExplore(
     }
   }
 
-  const model = createModel(ai)
+  if (visual && isJevModel(ai.model)) {
+    throw new Error(
+      `explore({ visual: true }) needs a vision-capable chat model. ${ai.model} is a decisions model and cannot read screenshots.`,
+    )
+  }
 
   const abort = new AbortController()
   const abortTimer = setTimeout(
@@ -136,6 +141,7 @@ export async function runExplore(
     lastActions: [] as number[],
     mutatedThisStep: false,
     issuesOnUnchangedView: 0,
+    turnSnapshot: snapshot,
     stop: () => {
       clearTimeout(abortTimer)
       abort.abort()
@@ -166,12 +172,28 @@ export async function runExplore(
   ]
 
   try {
-    let steps = 0
-    while (
-      !toolControl.done &&
-      !abort.signal.aborted &&
-      Date.now() + MIN_TURN_MS < callDeadline
-    ) {
+    if (isJevModel(ai.model)) {
+      await runJevExplore({
+        page,
+        session,
+        exploreIndex,
+        options,
+        ai,
+        tools: boundTools,
+        toolControl,
+        abort,
+        callDeadline,
+        allowedOrigins,
+        closeExplore,
+      })
+    } else {
+      const model = createModel(ai)
+      let steps = 0
+      while (
+        !toolControl.done &&
+        !abort.signal.aborted &&
+        Date.now() + MIN_TURN_MS < callDeadline
+      ) {
       if (steps >= MAX_STEPS) {
         closeExplore('Stopped at max steps.')
         break
@@ -186,6 +208,7 @@ export async function runExplore(
       }
 
       toolControl.mutatedThisStep = false
+      toolControl.turnSnapshot = snapshot
       stripPriorImages(messages)
       const filed = session.issues
         .filter((issue) => issue.exploreIndex === exploreIndex)
@@ -195,8 +218,8 @@ export async function runExplore(
         `Time left: ${Math.round((callDeadline - Date.now()) / 1000)}s`,
         `Only logIssue if THIS snapshot${visual ? ' or screenshot' : ''} shows a failure you have not already filed.`,
         visual
-          ? 'A new screenshot of the same page is not a new bug. After you log one defect, add items, use filters, or call done.'
-          : 'Do not report a remembered bug from an earlier screen.',
+          ? 'A new screenshot of the same page is not a new bug. After you log one defect, add items, use filters, or call done. The screenshot is for overlap, clip, overflow, and alignment. A named item is on screen only if this snapshot contains its name. A counter such as "1 item left" is not that row.'
+          : 'Do not report a remembered bug from an earlier screen. A named item is on screen only if this snapshot contains its name.',
         filed ? `Already filed this explore:\n${filed}\nDo not log these again.` : '',
         `Current page:\n${snapshot}`,
       ]
@@ -263,6 +286,7 @@ export async function runExplore(
           continue
         }
         throw error
+      }
       }
     }
 

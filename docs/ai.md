@@ -21,6 +21,8 @@ Set `ai.apiKey` to your OpenRouter key.
 
 `baseURL` is the prefix only (include `/v1`, do not append `/chat/completions`). Model IDs are OpenRouter slugs (`vendor/model`).
 
+Jev (`~typesafe/jev-latest` or `typesafe/jev-1.13`) is a decisions model, not a chat model. Keep `provider: 'openai-compatible'` and `baseURL` at `https://openrouter.ai/api/v1`. Vegapunk detects the Jev slug and calls `POST /api/alpha/decisions` instead of chat completions. Each turn Jev picks a Playwright tool, then (if needed) picks arguments from a closed list Vegapunk built from the snapshot: named controls, Network/Fetch paths, storage keys, plus small catalogs for fill text, keys, files, and network profiles. Jev does not invent URLs or payloads. `visual: true` needs a vision-capable chat model — Jev cannot read screenshots.
+
 The sample uses DeepSeek because Anthropic, OpenAI, and Gemini are unavailable in some regions (including Hong Kong). A slug that usually works there for text and vision: `qwen/qwen3.5-27b`.
 
 `vegapunk.explore({ visual: true })` sends a viewport JPEG each turn. The model must accept images. Only the latest screenshot stays in context. If your default model is text-only, override for that call:

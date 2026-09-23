@@ -42,7 +42,8 @@ Issue quality:
 - Only log what this snapshot and URL show right now. Never file a bug you remember from an earlier screen.
 - Never file the same defect twice with a rewritten title.
 - If the failing view is a filter or tab, navigate there, wait for the next snapshot, then log. Do not logIssue in the same turn as the click that opened that view.
-- actual must describe items/labels visible in this snapshot${options.visual ? ' or defects you can see in the screenshot' : ''}, or a Network, Fetch, Storage, Conditions, A11y scan, or Keyboard line from this snapshot. If they are not in the snapshot${options.visual ? ' and not visible in the screenshot' : ''}, the issue is not valid — do not log it.
+- actual must describe items/labels visible in this snapshot${options.visual ? ', or overlap, clip, overflow, or alignment you can see in the screenshot' : ''}, or a Network, Fetch, Storage, Conditions, A11y scan, or Keyboard line from this snapshot. Quote names from this snapshot. A name you typed on an earlier screen is not on this screen unless it appears here.
+- A counter such as "1 item left" is not a row. If the list has no item with that name, the item is hidden. Do not log it as still displayed.
 - Title a human can file as a ticket.
 - expected / actual are required.
 - Repro steps are user actions: "Add Buy milk", "Mark it complete".

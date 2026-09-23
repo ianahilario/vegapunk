@@ -9,7 +9,7 @@ import { captureSnapshot } from './snapshot.js'
 export type LogIssueOutcome =
   | { status: 'logged'; issue: Issue }
   | { status: 'duplicate'; existing: Issue }
-  | { status: 'no-evidence' }
+  | { status: 'no-evidence'; reason: string }
 
 const STOP = new Set([
   'the',
@@ -90,6 +90,58 @@ export function findDuplicateIssue(
   })
 }
 
+const QUOTED = /"([^"\n]+)"|'([^'\n]+)'|“([^”\n]+)”/g
+
+/** Quotes in `actual` are claims about what is on screen. A long paraphrase of an a11y line still counts. */
+export function quotedPhrases(text: string): string[] {
+  const found: string[] = []
+  for (const match of text.matchAll(QUOTED)) {
+    const phrase = (match[1] ?? match[2] ?? match[3] ?? '').trim()
+    if (phrase.length >= 2) found.push(phrase)
+  }
+  return found
+}
+
+export function textInSnapshot(snapshot: string, text: string): boolean {
+  const haystack = snapshot.toLowerCase()
+  const needle = text.trim().toLowerCase()
+  if (needle.length < 2) return false
+  if (haystack.includes(needle)) return true
+  const words = needle.split(/\s+/).filter(Boolean)
+  if (words.length < 6) return false
+  for (let index = 0; index + 6 <= words.length; index += 1) {
+    if (haystack.includes(words.slice(index, index + 6).join(' '))) return true
+  }
+  return false
+}
+
+/**
+ * Reject a filed issue whose proof is not on this page.
+ * Visual-category defects (overlap, clip, overflow) may cite the screenshot.
+ * Every other category must quote the snapshot. Quotes in `actual` must be on this page
+ * even for visual defects — a remembered label from an earlier screen is not evidence.
+ */
+export function ungroundedClaim(
+  snapshot: string,
+  input: { evidence: string; actual: string; category: IssueCategory; visual?: boolean },
+): string | undefined {
+  const evidence = input.evidence.trim()
+  if (!evidence) {
+    return 'evidence is empty. Quote the current snapshot, or describe a visual defect you can see.'
+  }
+  const screenshotOnly = Boolean(input.visual) && input.category === 'visual'
+  if (!screenshotOnly && !textInSnapshot(snapshot, evidence)) {
+    return 'evidence is not in the current snapshot. Recreate the failing view, then log only what this snapshot shows.'
+  }
+  const missing = quotedPhrases(input.actual).filter((phrase) => !textInSnapshot(snapshot, phrase))
+  if (missing.length) {
+    const listed = missing.map((phrase) => `"${phrase}"`).join(', ')
+    const verb = missing.length > 1 ? 'are' : 'is'
+    return `${listed} ${verb} not in the current snapshot. Do not report an item the page does not show. A count such as "1 item left" is not that item.`
+  }
+  return undefined
+}
+
 export async function logIssue(
   session: SessionState,
   page: Page,
@@ -105,16 +157,14 @@ export async function logIssue(
     reproSteps: string[]
     interactive: boolean
     visual?: boolean
+    /** Snapshot the model was shown this turn. One-shot notes are already consumed on a second capture. */
+    snapshot?: string
   },
 ): Promise<LogIssueOutcome> {
-  const snapshot = await captureSnapshot(page)
-  const evidence = input.evidence.trim()
-  const inSnapshot = Boolean(evidence) && snapshot.toLowerCase().includes(evidence.toLowerCase())
-  if (!inSnapshot && !input.visual) {
-    return { status: 'no-evidence' }
-  }
-  if (!evidence) {
-    return { status: 'no-evidence' }
+  const snapshot = input.snapshot?.trim() ? input.snapshot : await captureSnapshot(page)
+  const reason = ungroundedClaim(snapshot, input)
+  if (reason) {
+    return { status: 'no-evidence', reason }
   }
 
   const duplicate = findDuplicateIssue(session.issues, page.url(), input)
