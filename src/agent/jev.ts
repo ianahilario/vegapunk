@@ -87,7 +87,8 @@ type DecideFn = (
 ) => Promise<Record<string, JevAnswer>>
 
 export function isJevModel(model: string): boolean {
-  return /typesafe\/jev/i.test(model)
+  const name = model.trim()
+  return /typesafe\/jev/i.test(name) || /(?:^|\/)jev$/i.test(name)
 }
 
 export function decisionsUrl(baseURL?: string): string {

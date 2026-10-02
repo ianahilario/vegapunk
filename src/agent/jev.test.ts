@@ -12,8 +12,12 @@ import { createPersona } from '../persona.js'
 
 assert.equal(isJevModel('~typesafe/jev-latest'), true)
 assert.equal(isJevModel('typesafe/jev-1.13'), true)
+assert.equal(isJevModel('jev'), true)
+assert.equal(isJevModel('Jev'), true)
+assert.equal(isJevModel('openrouter/jev'), true)
 assert.equal(isJevModel('deepseek/deepseek-v4-flash'), false)
 assert.equal(isJevModel('openai/gpt-4o'), false)
+assert.equal(isJevModel('jev-latest'), false)
 
 assert.equal(decisionsUrl(), 'https://openrouter.ai/api/alpha/decisions')
 assert.equal(
